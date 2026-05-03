@@ -19,7 +19,7 @@ typedef struct
 // Estrutura de um conjunto de cache
 typedef struct
 {
-    cache_block *ways; // array de vias (cada via tem um bloco)
+    cache_block *ways; // array de vias (cada via pode conter um bloco)
     int num_ways;      // número de vias por conjunto (set)
 } cache_set;           // conjunto (set)
 
