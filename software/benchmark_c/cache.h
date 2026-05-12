@@ -12,6 +12,7 @@ typedef struct {
     int valid;           // bit de validade
     unsigned int tag;    // tag do bloco (parte mais significativa do endereço)
     int lru_counter;     // contador LRU
+    unsigned int pc;
 } cache_block;
 
 // Estrutura de um conjunto de cache
@@ -31,6 +32,10 @@ typedef struct {
     int hit_count;              // contagem de acertos
     int miss_count;             // contagem de falhas
     int replacement_policy;     // 0: LRU, 1: PERCEPTRON
+    
+    // perceptron
+    uint8_t ghr;                // Global History Register (8 bits)
+    int8_t **weights_table;
 } cache;
 
 /* Inicializa a cache com os parâmetros especificados */
@@ -45,4 +50,4 @@ int cache_access(cache *c, unsigned int address);
 /* Imprime hits, misses e hit rate */
 void cache_print_stats(cache *c);
 
-#endif // CACHE_H
+#endif // CACHE_
