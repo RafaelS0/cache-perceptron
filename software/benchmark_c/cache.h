@@ -45,7 +45,7 @@ cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_po
 void cache_free(cache *c);
 
 /* Acessa a cache com um endereço de memória e retorna 1 para acerto e 0 para falha */
-int cache_access(cache *c, unsigned int address);
+int cache_access(cache *c, unsigned int data_address, unsigned int pc);
 
 /* Imprime hits, misses e hit rate */
 void cache_print_stats(cache *c);
