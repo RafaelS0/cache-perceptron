@@ -23,14 +23,15 @@ static int log2_int(int n) {
 
 // MÓDULO PERCEPTRON (AIRA)
 #define PERCEPTRON_LINES 1024  // Linhas da tabela
-#define NUM_WEIGHTS 9          // 1 Bias + 8 bits do GHR
-#define GHR_SIZE 8             // Tamanho do histórico
-#define THRESHOLD 18           // Limiar de treinamento
+#define NUM_WEIGHTS 9          // 1 Bias + bits do GHR
+#define GHR_SIZE 8             // Tamanho do histórico (TESTAR 8, 16 E 32. NÃO ESQUEÇA DE MUDAR A VARIÁVEL DE CIMA E INVERTER OS COMENTÁRIOS DE HIT/MISS DO AIRA)
+#define THRESHOLD 18           // Limiar de treinamento (TESTAR 18 [valor da tese], 36 E 72)
 
 // calcula o score 'u' para um determinado PC
 static int perceptron_predict(cache *c, unsigned int pc) {
     // Isola os 10 bits do PC para indexar a tabela
-    unsigned int index = (pc >> c->offset_bits) & (PERCEPTRON_LINES - 1);
+    //unsigned int index = (pc >> c->offset_bits) & (PERCEPTRON_LINES - 1);
+    unsigned int index = (pc >> 2) & (PERCEPTRON_LINES - 1);
     
     // u inicia com o valor do Bias (w0 * x0, onde x0 é sempre 1)
     int u = c->weights_table[index][0]; 
@@ -48,7 +49,8 @@ static int perceptron_predict(cache *c, unsigned int pc) {
 static void perceptron_train(cache *c, unsigned int pc, int d, int u) {
     // só treina se errou a predição ou se a confiança (u) for menor que o THRESHOLD
     if ((u >= 0) != (d == 1) || abs(u) <= THRESHOLD) {
-        unsigned int index = (pc >> c->offset_bits) & (PERCEPTRON_LINES - 1);
+        //unsigned int index = (pc >> c->offset_bits) & (PERCEPTRON_LINES - 1);
+        unsigned int index = (pc >> 2) & (PERCEPTRON_LINES - 1);
         
         // Atualiza o Bias
         int w = c->weights_table[index][0] + d; // d é 1 (Hit) ou -1 (Miss)
@@ -139,12 +141,12 @@ cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_po
  * Processa um acesso ao endereço fornecido e aplica a política de substituição.
  * Retorna 1 (hit) ou 0 (miss).
  * --------------------------------------------------------------------- */
-int cache_access(cache *c, unsigned int address) {
+int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
 
     /* --- Passo 1: fatiar o endereço em offset, índice e tag --- */
-    unsigned int offset = address & ((1 << c->offset_bits) - 1);                    // não utilizado ainda
-    unsigned int index  = (address >> c->offset_bits) & ((1 << c->index_bits) - 1); // índice do conjunto
-    unsigned int tag    = address >> (c->offset_bits + c->index_bits);               // tag do bloco
+    unsigned int offset = data_address & ((1 << c->offset_bits) - 1);                    // não utilizado ainda
+    unsigned int index  = (data_address >> c->offset_bits) & ((1 << c->index_bits) - 1); // índice do conjunto
+    unsigned int tag    = data_address >> (c->offset_bits + c->index_bits);               // tag do bloco
 
     cache_set *set = &c->sets[index]; // conjunto correspondente ao índice
 
@@ -167,6 +169,7 @@ int cache_access(cache *c, unsigned int address) {
                 int u = perceptron_predict(c, set->ways[i].pc);
                 perceptron_train(c, set->ways[i].pc, 1, u); // d = 1 (Acertou em manter)
                 c->ghr = ((c->ghr << 1) | 1) & 0xFF;        // GHR recebe 1 (Hit)
+                //c->ghr = (c->ghr << 1) | 1;
             }
 
             c->hit_count++;
@@ -224,12 +227,19 @@ int cache_access(cache *c, unsigned int address) {
     }
     else if (c->replacement_policy == 1) {//atualiza GHR
         c->ghr = (c->ghr << 1) & 0xFF; // GHR recebe 0 (Miss)
+        //c->ghr = (c->ghr << 1);
     }
 
-    set->ways[victim].valid       = 1;
+    /*set->ways[victim].valid       = 1;
     set->ways[victim].tag         = tag;
     set->ways[victim].lru_counter = 0; // recém inserido = mais recente
-    set->ways[victim].pc = address;
+    set->ways[victim].pc = address*/
+    
+    
+    set->ways[victim].valid = 1;
+    set->ways[victim].tag = tag;
+    set->ways[victim].pc = pc; // MUDOU: Agora salva o PC da instrução, não o endereço do dado
+
 
     c->miss_count++;
     return 0; // MISS
