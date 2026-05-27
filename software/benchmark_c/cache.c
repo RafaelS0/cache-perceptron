@@ -200,7 +200,7 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
             }
         }
         else if (c->replacement_policy == 1) {
-            int min_u = 9999999;
+            int min_u = 9999999; // inicializa com um valor alto para encontrar o mínimo
             victim = 0; // assume a primeira via como vítima inicial
             
             for (int i = 0; i < c->num_ways; i++) {
