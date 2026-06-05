@@ -50,4 +50,6 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc);
 /* Imprime hits, misses e hit rate */
 void cache_print_stats(cache *c);
 
+void cahce_print_set(cache *c, int set_index);
+
 #endif // CACHE_

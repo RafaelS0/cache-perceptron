@@ -45,6 +45,7 @@ int main()
     printf("Escolha o cenario de teste:\n");
     printf("1. Streaming + HotSet (Antagonista ao LRU)\n");
     printf("2. Matrix Convolution(Reuso Temporal)\n");
+    printf("3. Validacao funcional LRU\n");
     printf("0. Sair\n");
     printf("Digite sua opcao: ");
     scanf("%d", &option);
@@ -68,6 +69,15 @@ int main()
       printf(" IMPACTO DO AIRA           |        %+6.2f%% \n", hit_aira - hit_lru);
       printf("===================================================\n\n");
     }
+
+    if (option == 3) {
+    cache *L1 = cache_init(L1_NUM_SETS, L1_WAYS, L1_BLOCK_SIZE, 0);
+
+    simulate_validation_lru(L1);
+
+    cache_free(L1);
+    continue;
+}
 
   } while (option != 0);
 

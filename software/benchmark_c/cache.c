@@ -229,11 +229,6 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
         c->ghr = (c->ghr << 1) & 0xFF; // GHR recebe 0 (Miss)
         //c->ghr = (c->ghr << 1);
     }
-
-    /*set->ways[victim].valid       = 1;
-    set->ways[victim].tag         = tag;
-    set->ways[victim].lru_counter = 0; // recém inserido = mais recente
-    set->ways[victim].pc = address*/
     
     
     set->ways[victim].valid = 1;
@@ -256,6 +251,34 @@ void cache_print_stats(cache *c) {
     printf("Misses:   %d\n", c->miss_count);
     printf("Hit Rate: %.2f%%\n", hit_rate);
 }
+
+
+void cache_print_set(cache *c, int set_index) {
+    if (c == NULL) return;
+
+    if (set_index < 0 || set_index >= c->num_sets) {
+        printf("Set invalido: %d\n", set_index);
+        return;
+    }
+
+    cache_set *set = &c->sets[set_index];
+
+    printf("\n--- Estado do Set %d ---\n", set_index);
+
+    for (int i = 0; i < c->num_ways; i++) {
+        printf(
+            "Via %d | valid=%d | tag=%u | lru=%d | pc=0x%08X\n",
+            i,
+            set->ways[i].valid,
+            set->ways[i].tag,
+            set->ways[i].lru_counter,
+            set->ways[i].pc
+        );
+    }
+
+    printf("------------------------\n");
+}
+
 
 /* ---------------------------------------------------------------------
  * cache_free

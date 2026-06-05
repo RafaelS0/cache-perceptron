@@ -1,6 +1,6 @@
 #include "cache.h"
 #include "config.h"
-
+#include <stdio.h>
 #define ARRAY_SIZE ((L1_CAPACITY * 2) / 4) // Tamanho do array para o benchmark 1 (2x a capacidade da cache, considerando blocos de 4 bytes)
 
 // Benchmark 1
@@ -50,4 +50,41 @@ void simulate_matrix_conv(cache *c)
             cache_access(c, base_out + ((y * width + x) * 4), pc_out);
         }
     }
+}
+
+void simulate_validation_lru(cache *c) {
+    unsigned int important_pc = 0x100;
+    unsigned int pc_2 = 0x200;
+
+    printf("\n========================================\n");
+    printf(" VALIDACAO FUNCIONAL DO LRU\n");
+    printf("========================================\n");
+
+    printf("\nConfiguracao esperada: cache 2-way.\n");
+    printf("A ideia e forcar tres blocos diferentes no mesmo set.\n");
+
+    printf("\n[Acesso 1] Endereco: 0 | PC: 0x100\n");
+    cache_access(c, 0, important_pc);
+    cache_print_set(c, 0);
+
+    printf("\n[Acesso 2] Endereco: 2048 | PC: 0x200\n");
+    cache_access(c, 2048, pc_2);
+    cache_print_set(c, 0);
+
+    printf("\n[Acesso 3] Endereco: 0 | PC: 0x100\n");
+    cache_access(c, 0, important_pc);
+    cache_print_set(c, 0);
+
+    printf("\n[Acesso 4] Endereco: 4096 | PC: 0x200\n");
+    cache_access(c, 4096, pc_2);
+    cache_print_set(c, 0);
+
+    printf("\nResultado final:\n");
+    cache_print_stats(c);
+
+    printf("\nEsperado:\n");
+    printf("- 3 misses\n");
+    printf("- 1 hit\n");
+    printf("- O bloco do endereco 0 deve permanecer na cache\n");
+    printf("- O bloco do endereco 2048 deve ser substituido\n");
 }
