@@ -88,3 +88,85 @@ void simulate_validation_lru(cache *c) {
     printf("- O bloco do endereco 0 deve permanecer na cache\n");
     printf("- O bloco do endereco 2048 deve ser substituido\n");
 }
+
+void simulate_validation_perceptron(cache *c) {
+    unsigned int stride = c->num_sets * c->block_size;
+
+    unsigned int pc_hot = 0x00400004;
+    unsigned int pc_stream = 0x00400000;
+
+    unsigned int addr_hot = 0;
+    unsigned int addr_stream1 = stride;
+    unsigned int addr_stream2 = stride * 2;
+
+    printf("\n========================================\n");
+    printf(" VALIDACAO FUNCIONAL DO PERCEPTRON\n");
+    printf("========================================\n");
+
+    printf("\nObjetivo:\n");
+    printf("- Ensinar que pc_hot deve ser preservado\n");
+    printf("- Ensinar que pc_stream deve ser menos confiavel\n");
+    printf("- Verificar se a vitima escolhida e a de menor score\n");
+
+    printf("\nEnderecos usados:\n");
+    printf("addr_hot     = %u\n", addr_hot);
+    printf("addr_stream1 = %u\n", addr_stream1);
+    printf("addr_stream2 = %u\n", addr_stream2);
+    printf("Todos devem mapear para o set 0.\n");
+
+    /*
+     * Fase 1: aquecimento.
+     * Coloca dois blocos no mesmo set.
+     */
+    printf("\n[Fase 1] Preenchendo o set\n");
+
+    cache_access(c, addr_hot, pc_hot);
+    cache_access(c, addr_stream1, pc_stream);
+
+    cache_debug_set_perceptron(c, 0);
+    cache_debug_perceptron_pc(c, pc_hot);
+    cache_debug_perceptron_pc(c, pc_stream);
+
+    /*
+     * Fase 2: reforçar o hot block.
+     * Repetir acessos ao addr_hot gera HITs e treina d = 1.
+     */
+    printf("\n[Fase 2] Reforcando o pc_hot com varios HITs\n");
+
+    for (int i = 0; i < 10; i++) {
+        cache_access(c, addr_hot, pc_hot);
+        cache_debug_perceptron_pc(c, pc_hot);
+    }
+
+    /*
+     * Fase 3: gerar conflito.
+     * Como addr_stream2 mapeia para o mesmo set, a cache precisa escolher uma vitima.
+     * O esperado e preservar addr_hot e expulsar o bloco com pc_stream.
+     */
+    printf("\n[Fase 3] Gerando conflito no mesmo set\n");
+
+    printf("\nAntes do conflito:\n");
+    cache_debug_set_perceptron(c, 0);
+
+    cache_access(c, addr_stream2, pc_stream);
+
+    printf("\nDepois do conflito:\n");
+    cache_debug_set_perceptron(c, 0);
+
+    /*
+     * Fase 4: verificar se o hot continua na cache.
+     * Se der HIT, o Perceptron preservou o bloco correto.
+     */
+    printf("\n[Fase 4] Verificando se o hot block foi preservado\n");
+
+    int result = cache_access(c, addr_hot, pc_hot);
+
+    if (result == 1) {
+        printf("\nPASSOU: addr_hot ainda estava na cache.\n");
+    } else {
+        printf("\nFALHOU: addr_hot foi expulso da cache.\n");
+    }
+
+    printf("\nEstatisticas finais:\n");
+    cache_print_stats(c);
+}

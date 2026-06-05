@@ -52,4 +52,9 @@ void cache_print_stats(cache *c);
 
 void cahce_print_set(cache *c, int set_index);
 
+void cache_debug_perceptron_pc(cache *c, unsigned int pc);
+
+void cache_debug_set_perceptron(cache *c, int set_index);
+
+
 #endif // CACHE_
