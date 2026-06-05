@@ -280,6 +280,59 @@ void cache_print_set(cache *c, int set_index) {
 }
 
 
+void cache_debug_perceptron_pc(cache *c, unsigned int pc) {
+    if (c == NULL) return;
+
+    unsigned int index = (pc >> 2) & (PERCEPTRON_LINES - 1);
+    int u = perceptron_predict(c, pc);
+
+    printf("\n--- Debug Perceptron para PC 0x%08X ---\n", pc);
+    printf("Indice tabela: %u\n", index);
+    printf("GHR: 0x%02X\n", c->ghr);
+    printf("Score u: %d\n", u);
+
+    printf("Pesos: ");
+    for (int i = 0; i < NUM_WEIGHTS; i++) {
+        printf("%d ", c->weights_table[index][i]);
+    }
+    printf("\n");
+    printf("----------------------------------------\n");
+}
+
+void cache_debug_set_perceptron(cache *c, int set_index) {
+    if (c == NULL) return;
+
+    if (set_index < 0 || set_index >= c->num_sets) {
+        printf("Set invalido: %d\n", set_index);
+        return;
+    }
+
+    cache_set *set = &c->sets[set_index];
+
+    printf("\n--- Debug Set %d / Perceptron ---\n", set_index);
+    printf("GHR: 0x%02X\n", c->ghr);
+
+    for (int i = 0; i < c->num_ways; i++) {
+        if (set->ways[i].valid) {
+            int u = perceptron_predict(c, set->ways[i].pc);
+
+            printf(
+                "Via %d | valid=%d | tag=%u | pc=0x%08X | score=%d\n",
+                i,
+                set->ways[i].valid,
+                set->ways[i].tag,
+                set->ways[i].pc,
+                u
+            );
+        } else {
+            printf("Via %d | invalid\n", i);
+        }
+    }
+
+    printf("----------------------------------\n");
+}
+
+
 /* ---------------------------------------------------------------------
  * cache_free
  * Libera toda a memória alocada pela cache.

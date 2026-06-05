@@ -46,6 +46,7 @@ int main()
     printf("1. Streaming + HotSet (Antagonista ao LRU)\n");
     printf("2. Matrix Convolution(Reuso Temporal)\n");
     printf("3. Validacao funcional LRU\n");
+    printf("4. Validacao funcional Perceptron\n");
     printf("0. Sair\n");
     printf("Digite sua opcao: ");
     scanf("%d", &option);
@@ -74,6 +75,15 @@ int main()
     cache *L1 = cache_init(L1_NUM_SETS, L1_WAYS, L1_BLOCK_SIZE, 0);
 
     simulate_validation_lru(L1);
+
+    cache_free(L1);
+    continue;
+}
+
+ if (option == 4) {
+    cache *L1 = cache_init(L1_NUM_SETS, L1_WAYS, L1_BLOCK_SIZE, 1);
+
+    simulate_validation_perceptron(L1);
 
     cache_free(L1);
     continue;
