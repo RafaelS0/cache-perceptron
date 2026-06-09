@@ -21,7 +21,7 @@
  * ===================================================================== */
 #define L1_CAPACITY      4096   /* bytes — trocar para 8192 para testar 8KB */
 #define L1_BLOCK_SIZE    32     /* bytes */
-#define L1_WAYS          2      /* vias  — trocar para 4 para testar 4-way  */
+#define L1_WAYS          4      
 #define L1_NUM_SETS      (L1_CAPACITY / (L1_BLOCK_SIZE * L1_WAYS))
 
 /* =====================================================================

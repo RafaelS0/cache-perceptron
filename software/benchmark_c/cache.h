@@ -13,6 +13,7 @@ typedef struct {
     unsigned int tag;    // tag do bloco (parte mais significativa do endereço)
     int lru_counter;     // contador LRU
     unsigned int pc;
+    int hysteresis;      // Contador de histerese (Inércia de 0 a 3)
 } cache_block;
 
 // Estrutura de um conjunto de cache
