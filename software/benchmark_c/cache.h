@@ -34,12 +34,14 @@ typedef struct {
     int replacement_policy;     // 0: LRU, 1: PERCEPTRON
     
     // perceptron
-    uint8_t ghr;                // Global History Register (8 bits)
+    uint8_t ghr;                // Global History Register (8 bits ou X bits)
     int8_t **weights_table;
+    int ghr_size;               
+    int threshold;
 } cache;
 
 /* Inicializa a cache com os parâmetros especificados */
-cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy);
+cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy, int ghr_size, int threshold);
 
 /* Libera a memória da cache */
 void cache_free(cache *c);
@@ -50,11 +52,11 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc);
 /* Imprime hits, misses e hit rate */
 void cache_print_stats(cache *c);
 
-void cahce_print_set(cache *c, int set_index);
+void cache_print_set(cache *c, int set_index);
 
 void cache_debug_perceptron_pc(cache *c, unsigned int pc);
 
 void cache_debug_set_perceptron(cache *c, int set_index);
 
 
-#endif // CACHE_
+#endif // CACHE_/* Estrutura de dados da cache e funções de acesso */
