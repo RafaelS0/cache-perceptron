@@ -22,10 +22,7 @@ static int log2_int(int n) {
 
 
 // MÓDULO PERCEPTRON (AIRA)
-#define PERCEPTRON_LINES 1024  // Linhas da tabela
-#define NUM_WEIGHTS 9          // 1 Bias + bits do GHR
-#define GHR_SIZE 8             // Tamanho do histórico (TESTAR 8, 16 E 32. NÃO ESQUEÇA DE MUDAR A VARIÁVEL DE CIMA E INVERTER OS COMENTÁRIOS DE HIT/MISS DO AIRA)
-#define THRESHOLD 18           // Limiar de treinamento (TESTAR 18 [valor da tese], 36 E 72)
+#define PERCEPTRON_LINES 1024  // Linhas da tabela de pesos
 
 // calcula o score 'u' para um determinado PC
 static int perceptron_predict(cache *c, unsigned int pc) {
@@ -37,7 +34,7 @@ static int perceptron_predict(cache *c, unsigned int pc) {
     int u = c->weights_table[index][0]; 
     
     // Soma ponderada com os 8 bits do GHR
-    for (int i = 1; i <= GHR_SIZE; i++) {
+    for (int i = 1; i <= c->ghr_size; i++) {
         // pega o bit específico do GHR. Se for 1, x_i = 1. Se for 0, x_i = -1.
         int x_i = (c->ghr & (1 << (i - 1))) ? 1 : -1;
         u += c->weights_table[index][i] * x_i;
@@ -48,7 +45,7 @@ static int perceptron_predict(cache *c, unsigned int pc) {
 /* treina (atualiza) os pesos quando necessário */
 static void perceptron_train(cache *c, unsigned int pc, int d, int u) {
     // só treina se errou a predição ou se a confiança (u) for menor que o THRESHOLD
-    if ((u >= 0) != (d == 1) || abs(u) <= THRESHOLD) {
+    if ((u >= 0) != (d == 1) || abs(u) <= c->threshold) {
         //unsigned int index = (pc >> c->offset_bits) & (PERCEPTRON_LINES - 1);
         unsigned int index = (pc >> 2) & (PERCEPTRON_LINES - 1);
         
@@ -59,7 +56,7 @@ static void perceptron_train(cache *c, unsigned int pc, int d, int u) {
         c->weights_table[index][0] = (int8_t)w;
 
         // Atualiza os pesos do GHR
-        for (int i = 1; i <= GHR_SIZE; i++) {
+        for (int i = 1; i <= c->ghr_size; i++) {
             int x_i = (c->ghr & (1 << (i - 1))) ? 1 : -1;
             w = c->weights_table[index][i] + (d * x_i);
             // saturação
@@ -75,7 +72,7 @@ static void perceptron_train(cache *c, unsigned int pc, int d, int u) {
  * Aloca e inicializa a cache com os parâmetros fornecidos.
  * Retorna ponteiro para a cache criada, ou NULL em caso de erro.
  * --------------------------------------------------------------------- */
-cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy) {
+cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy, int ghr_size, int threshold) {
 
     /* 1. Aloca a struct principal */
     cache *c = (cache *) malloc(sizeof(cache));
@@ -93,46 +90,39 @@ cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_po
     c->hit_count          = 0;
     c->miss_count         = 0;
     c->replacement_policy = replacement_policy;   // 0: LRU, 1: Perceptron
+    c->ghr_size  = ghr_size;
+    c->threshold = threshold;
 
     /* 3. Aloca o array de conjuntos */
-    c->sets = (cache_set *) malloc(num_sets * sizeof(cache_set));
+    /*c->sets = (cache_set *) malloc(num_sets * sizeof(cache_set));
     if (c->sets == NULL) {
         printf("Erro: falha ao alocar conjuntos\n");
         free(c);
         return NULL;
-    }
+    }*/
+    
 
     /* 4. Para cada conjunto, aloca o array de vias e inicializa os blocos */
+    c->sets = (cache_set *) malloc(num_sets * sizeof(cache_set));
     for (int i = 0; i < num_sets; i++) {
         c->sets[i].num_ways = num_ways;
         c->sets[i].ways = (cache_block *) malloc(num_ways * sizeof(cache_block));
-
-        if (c->sets[i].ways == NULL) {
-            printf("Erro: falha ao alocar vias do conjunto %d\n", i);
-            /* Libera o que já foi alocado antes de sair */
-            for (int j = 0; j < i; j++) free(c->sets[j].ways);
-            free(c->sets);
-            free(c);
-            return NULL;
-        }
-
         /* 5. Inicializa cada bloco do conjunto */
         for (int j = 0; j < num_ways; j++) {
             c->sets[i].ways[j].valid       = 0; // inválido
             c->sets[i].ways[j].tag         = 0;
             c->sets[i].ways[j].lru_counter = 0;
+            c->sets[i].ways[j].pc          = 0;
         }
     }
-    
     
     // inicializa as variáveis do Perceptron
     c->ghr = 0;
     c->weights_table = (int8_t **) malloc(PERCEPTRON_LINES * sizeof(int8_t *));
     for (int i = 0; i < PERCEPTRON_LINES; i++) {
-        c->weights_table[i] = (int8_t *) calloc(NUM_WEIGHTS, sizeof(int8_t)); // calloc zera pesos
+        // aloca dinamicamente: Bias (1) + Tamanho do GHR
+        c->weights_table[i] = (int8_t *) calloc(c->ghr_size + 1, sizeof(int8_t)); // calloc zera pesos
     }
-    
-
     return c;
 }
 
@@ -168,8 +158,7 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
             else if (c->replacement_policy == 1) {
                 int u = perceptron_predict(c, set->ways[i].pc);
                 perceptron_train(c, set->ways[i].pc, 1, u); // d = 1 (Acertou em manter)
-                c->ghr = ((c->ghr << 1) | 1) & 0xFF;        // GHR recebe 1 (Hit)
-                //c->ghr = (c->ghr << 1) | 1;
+                c->ghr = (c->ghr << 1) | 1;        // GHR recebe 1 (Hit)
             }
 
             c->hit_count++;
@@ -226,8 +215,7 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
         set->ways[victim].lru_counter = 0;
     }
     else if (c->replacement_policy == 1) {//atualiza GHR
-        c->ghr = (c->ghr << 1) & 0xFF; // GHR recebe 0 (Miss)
-        //c->ghr = (c->ghr << 1);
+        c->ghr = c->ghr << 1; // GHR recebe 0 (Miss)
     }
     
     
@@ -292,7 +280,7 @@ void cache_debug_perceptron_pc(cache *c, unsigned int pc) {
     printf("Score u: %d\n", u);
 
     printf("Pesos: ");
-    for (int i = 0; i < NUM_WEIGHTS; i++) {
+    for (int i = 0; i <= c->ghr_size; i++) {
         printf("%d ", c->weights_table[index][i]);
     }
     printf("\n");
