@@ -52,6 +52,44 @@ void simulate_matrix_conv(cache *c)
     }
 }
 
+// Benchmark 3 (Acesso Zigue-Zague Largo)
+// processador lendo um bd gigante, alternando entre uma tabela principal (A) e uma tabela de índices (B)
+void simulate_zigzag_access(cache *c) {
+    unsigned int base_A = 0x100000; 
+    unsigned int base_B = 0x200000; 
+    
+    // dois PCs separados, pq são duas partes diferentes do código
+    unsigned int pc_read_A = 0x00400010; 
+    unsigned int pc_read_B = 0x00400014; 
+    
+    // 20 repetições para forçar o histórico a aprender
+    for (int rep = 0; rep < 20; rep++) {
+        // Varre 8.000 blocos
+        for (int i = 0; i < 8000; i++) {
+            if (i % 2 == 0) {
+                cache_access(c, base_A + (i * 4), pc_read_A);
+            } else {
+                cache_access(c, base_B + (i * 4), pc_read_B);
+            }
+        }
+    }
+}
+
+// Benchmark 4 (Apenas Ruído)
+//simula busca em Tabela Hash em uma área de 1mb de RAM.
+void simulate_hash_table_noise(cache *c) {
+    unsigned int base_hash = 0x500000;
+    unsigned int pc_hash   = 0x00400020;
+    
+    srand(12345); 
+    
+    for (int i = 0; i < 100000; i++) {//100000 acessos
+        //gera offset de até 256.000 posições inteiras (1MB)
+        int random_offset = (rand() % 256000) * 4; 
+        cache_access(c, base_hash + random_offset, pc_hash);
+    }
+}
+
 void simulate_validation_lru(cache *c) {
     unsigned int important_pc = 0x100;
     unsigned int pc_2 = 0x200;
