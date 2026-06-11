@@ -123,6 +123,7 @@ cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_po
         // aloca dinamicamente: Bias (1) + Tamanho do GHR
         c->weights_table[i] = (int8_t *) calloc(c->ghr_size + 1, sizeof(int8_t)); // calloc zera pesos
     }
+    c->l2 = NULL; // Inicializa ponteiro para cache L2 como NULL
     return c;
 }
 
@@ -164,6 +165,10 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
             c->hit_count++;
             return 1; // HIT
         }
+    }
+
+    if (c->l2 != NULL) {
+        cache_access(c->l2, data_address, pc);
     }
 
     /* --- Passo 3: MISS — encontrar a vítima --- */

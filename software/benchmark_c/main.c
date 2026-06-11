@@ -8,121 +8,199 @@
 #include "config.h"
 #include "benchmarks.h"
 
+
+
+// --- VARIÁVEIS GLOBAIS DE CONFIGURAÇÃO DINÂMICA ---
+// Inicializam com os valores padrão definidos no config.h (por padrão não usa L2)
+int cfg_use_l2   = USE_L2; 
+int cfg_l1_sets  = L1_NUM_SETS;
+int cfg_l1_ways  = L1_WAYS;
+int cfg_l1_block = L1_BLOCK_SIZE;
+
+int cfg_l2_sets  = L2_NUM_SETS;
+int cfg_l2_ways  = L2_WAYS;
+int cfg_l2_block = L2_BLOCK_SIZE;
+
+// Função interativa para alterar os parâmetros em tempo de execução
+void cache_config() {
+    int sub_option = 0;
+    
+    printf("\n===================================================\n");
+    printf("        MENU DE CONFIGURAÇÃO DA CACHE\n");
+    printf("===================================================\n");
+    printf("1. Alternar Cache L2 (Atual: %s)\n", cfg_use_l2 ? "LIGADA" : "DESLIGADA");
+    printf("2. Alterar Vias da L1 (Atual: %d vias)\n", cfg_l1_ways);
+    printf("3. Alterar Vias da L2 (Atual: %d vias)\n", cfg_l2_ways);
+    printf("6. Resetar para Padrões do config.h\n");
+    printf("0. Voltar ao Menu Principal\n");
+    printf("---------------------------------------------------\n");
+    printf("Digite sua opção: ");
+    scanf("%d", &sub_option);
+
+    if (sub_option == 1) {
+        cfg_use_l2 = !cfg_use_l2; // Inverte entre 0 e 1
+        printf("\n[Sucesso] Cache L2 alterada para: %s\n", cfg_use_l2 ? "LIGADA" : "DESLIGADA");
+    } 
+    else if (sub_option == 2) {
+        printf("Digite o novo número de vias para L1: ");
+        scanf("%d", &cfg_l1_ways);
+		if(cfg_l1_ways != 4 && cfg_l1_ways != 8){
+		cfg_l1_ways = L1_WAYS; // Restaura para o valor padrão
+		printf("\n[Erro] Número de vias para L1 inválido. Deve ser 4 ou 8. Revertendo para o valor padrão (%d vias).\n", cfg_l1_ways);
+		} else {
+        printf("\n[Sucesso] L1 configurada para %d vias.\n", cfg_l1_ways);
+ 	   } 
+}
+    else if (sub_option == 3) {
+        printf("Digite o novo número de vias para L2: ");
+        scanf("%d", &cfg_l2_ways);
+		if(cfg_l2_ways != 8 && cfg_l2_ways != 16){
+		cfg_l2_ways = L2_WAYS; // Restaura para o valor padrão
+		printf("\n[Erro] Número de vias para L2 inválido. Deve ser 8 ou 16. Revertendo para o valor padrão (%d vias).\n", cfg_l2_ways);
+		
+		} else {
+		printf("\n[Sucesso] L2 configurada para %d vias.\n", cfg_l2_ways);
+		}   
+    }
+    else if (sub_option == 5) {
+        cfg_use_l2   = USE_L2;
+        cfg_l1_ways  = L1_WAYS;
+        cfg_l2_ways  = L2_WAYS;
+        printf("\n[Sucesso] Configurações resetadas para o padrão de fábrica.\n");
+    }
+    printf("===================================================\n\n");
+}
+
+
+
 float run_simulation(int scenario, int policy, int ghr, int threshold)
 {
-	// 1. Inicializa a cache L1 com a política escolhida
-	cache *L1 = cache_init(L1_NUM_SETS, L1_WAYS, L1_BLOCK_SIZE, policy, ghr, threshold);
+    // 1. Inicializa a cache L1 usando as variáveis globais configuráveis
+    cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, policy, ghr, threshold);
+    cache *L2 = NULL;
 
-	// 2. Dispara o cenário de teste selecionado
-	if (scenario == 1) simulate_streaming(L1);
-	else if (scenario == 2) simulate_matrix_conv(L1);
+    // Se o usuário ativou a L2 na configuração, instancia e encadeia ela
+    if (cfg_use_l2) {
+        L2 = cache_init(cfg_l2_sets, cfg_l2_ways, cfg_l2_block, policy, ghr, threshold);
+        L1->l2 = L2; 
+    } else {
+        L1->l2 = NULL; // Garante que está desativada
+    }
+
+    // 2. Dispara o cenário de teste selecionado
+    if (scenario == 1) simulate_streaming(L1);
+    else if (scenario == 2) simulate_matrix_conv(L1);
     else if (scenario == 3) simulate_zigzag_access(L1);
     else if (scenario == 4) simulate_hash_table_noise(L1);
 
-	// 3. Calcula matematicamente a taxa de acerto (Hit Rate) final
-	int total_accesses = L1->hit_count + L1->miss_count;
-	float hit_rate = (total_accesses > 0) ? ((float)L1->hit_count / total_accesses) * 100.0f : 0.0f;
+    // 3. Calcula matematicamente a taxa de acerto (Hit Rate) final da L1
+    int total_accesses = L1->hit_count + L1->miss_count;
+    float hit_rate = (total_accesses > 0) ? ((float)L1->hit_count / total_accesses) * 100.0f : 0.0f;
 
-	// 4. Libera a memória da cache utilizada no benchamark (evita vazamento de memória)
-	cache_free(L1);
+    // 4. Se a L2 estiver ligada, exibe suas métricas de forma segura
+    if (cfg_use_l2 && L2 != NULL) {
+        int total_l2 = L2->hit_count + L2->miss_count;
+        float hit_rate_l2 = (total_l2 > 0) ? ((float)L2->hit_count / total_l2) * 100.0f : 0.0f;
+        printf("     [Info Interna] -> Hit Rate L1: %.2f%% | Hit Rate L2: %.2f%%\n", hit_rate, hit_rate_l2);
+        cache_free(L2); // Libera a L2
+    } else {
+        printf("     [Info Interna] -> Hit Rate L1: %.2f%% | L2 DESATIVADA\n", hit_rate);
+    }
 
-	return hit_rate;
+    // 5. Libera a memória da L1
+    cache_free(L1);
+
+    return hit_rate;
 }
 
 int main(){
 
-	int option = 0;
-	//valores padrão se for rodar interativo
-	int default_ghr = 8;
+    int option = 0;
+    int default_ghr = 8;
     int default_t = 29;
 
-	do{
-		printf("=== SIMULADOR DE CACHE  ===\n");
-		printf("Escolha o cenario de teste:\n");
-		printf("1. Streaming + HotSet (Antagonista ao LRU)\n");
-		printf("2. Matrix Convolution(Reuso Temporal)\n");
-		printf("3. ZigZag Access (Acesso Correlacionado)\n");
+    do{
+        printf("=== SIMULADOR DE CACHE ===\n");
+        printf("Escolha o cenario de teste:\n");
+        printf("1. Streaming + HotSet (Antagonista ao LRU)\n");
+        printf("2. Matrix Convolution (Reuso Temporal)\n");
+        printf("3. ZigZag Access (Acesso Correlacionado)\n");
         printf("4. Hash Table Noise (Ruidos)\n");
-        
-		printf("5. Validacao funcional LRU\n");
-		printf("6. Validacao funcional Perceptron\n");
-		
-		printf("10. Rodar Grid Tests Automatizado (Gera CSV)\n");
-		printf("0. Sair\n");
-		printf("Digite sua opcao: ");
-		scanf("%d", &option);
+        printf("5. Validacao funcional LRU\n");
+        printf("6. Validacao funcional Perceptron\n");
+        printf("10. Rodar Grid Tests Automatizado (Gera CSV)\n");
+        printf("11. Configurar Parametros da Cache (L2 / Vias)\n");
+        printf("0. Sair\n");
+        printf("Digite sua opcao: ");
+        scanf("%d", &option);
 
-		const char *scenario_name = (option == 1) ? "Streaming + HotSet " : "Matrix Convolution";
+        // CORREÇÃO DE BUG: As duas chamadas soltas de run_simulation que ficavam aqui 
+        // foram removidas, pois elas executavam indevidamente para qualquer opção digitada.
 
-		// Executa as duas simulações e guarda apenas as taxas de acerto
-		float hit_lru = run_simulation(option, 0, default_ghr, default_t);  // 0 = LRU Baseline
-		float hit_aira = run_simulation(option, 1, default_ghr, default_t); // 1 = AIRA Perceptro
-
-		if (option >= 1 && option <= 4)
-		{
-		    const char *nomes[] = {"", "Streaming", "Matrix", "ZigZag", "Hash Noise"};
-		    
-		    float hit_lru = run_simulation(option, 0, default_ghr, default_t);  
+        if (option >= 1 && option <= 4)
+        {
+            const char *nomes[] = {"", "Streaming", "Matrix", "ZigZag", "Hash Noise"};
+            
+            float hit_lru = run_simulation(option, 0, default_ghr, default_t);  
             float hit_aira = run_simulation(option, 1, default_ghr, default_t);
       
-			printf(" BENCHMARK: %s\n", nomes[option]);
-			printf("\n===================================================\n");
-			printf("===================================================\n");
-			printf(" Algoritmo de Substituicao | Taxa de Acerto (Hit Rate) \n");
-			printf("---------------------------|-----------------------\n");
-			printf(" LRU (Baseline)            |        %6.2f%% \n", hit_lru);
-			printf(" AIRA (Perceptron)         |        %6.2f%% \n", hit_aira);
-			printf("---------------------------|-----------------------\n");
-			printf(" IMPACTO DO AIRA           |        %+6.2f%% \n", hit_aira - hit_lru);
-			printf("===================================================\n\n");
-		}
-
-		if (option == 5) {
-			cache *L1 = cache_init(L1_NUM_SETS, L1_WAYS, L1_BLOCK_SIZE, 0, default_ghr, default_t);
-
-			simulate_validation_lru(L1);
-
-			cache_free(L1);
-			continue;
-		}
-
-		if (option == 6) {
-			cache *L1 = cache_init(L1_NUM_SETS, L1_WAYS, L1_BLOCK_SIZE, 1, default_ghr, default_t);
-
-			simulate_validation_perceptron(L1);
-
-			cache_free(L1);
-			continue;
-		}
-		
-		
-		
-		if (option == 10) {
-        int ghr_testes[] = {4, 8, 12, 16, 24, 32, 48, 64, 80, 96, 112, 128};
-        int t_testes[]   = {21, 29, 37, 44, 60, 75, 106, 137, 168, 199, 230, 261}; //t = floor(1.93 * GHR + 14)
-        int num_testes = sizeof(ghr_testes) / sizeof(ghr_testes[0]);
-
-        printf("\nGHR,Threshold,B1_LRU,B1_AIRA,B2_LRU,B2_AIRA,B3_LRU,B3_AIRA,B4_LRU,B4_AIRA\n");
-
-        for (int i = 0; i < num_testes; i++) {
-            int ghr = ghr_testes[i];
-            int t = t_testes[i];
-
-            float b1_lru = run_simulation(1, 0, ghr, t);
-            float b1_aira= run_simulation(1, 1, ghr, t);
-            float b2_lru = run_simulation(2, 0, ghr, t);
-            float b2_aira= run_simulation(2, 1, ghr, t);
-            float b3_lru = run_simulation(3, 0, ghr, t);
-            float b3_aira= run_simulation(3, 1, ghr, t);
-            float b4_lru = run_simulation(4, 0, ghr, t);
-            float b4_aira= run_simulation(4, 1, ghr, t);
-
-            printf("%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",ghr, t, b1_lru, b1_aira, b2_lru, b2_aira, b3_lru, b3_aira, b4_lru, b4_aira);
+            printf(" BENCHMARK: %s\n", nomes[option]);
+            printf("\n===================================================\n");
+            printf("===================================================\n");
+            printf(" Algoritmo de Substituicao | Taxa de Acerto (Hit Rate) \n");
+            printf("---------------------------|-----------------------\n");
+            printf(" LRU (Baseline)            |        %6.2f%% \n", hit_lru);
+            printf(" AIRA (Perceptron)         |        %6.2f%% \n", hit_aira);
+            printf("---------------------------|-----------------------\n");
+            printf(" IMPACTO DO AIRA           |        %+6.2f%% \n", hit_aira - hit_lru);
+            printf("===================================================\n\n");
         }
-    }
-		
 
-	} while (option != 0);
+        if (option == 5) {
+            // Adaptado para também usar os parâmetros configurados dinamicamente
+            cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 0, default_ghr, default_t);
+            simulate_validation_lru(L1);
+            cache_free(L1);
+            continue;
+        }
 
-	return 0;
+        if (option == 6) {
+            // Adaptado para também usar os parâmetros configurados dinamicamente
+            cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 1, default_ghr, default_t);
+            simulate_validation_perceptron(L1);
+            cache_free(L1);
+            continue;
+        }
+        
+        if (option == 10) {
+            int ghr_testes[] = {4, 8, 12, 16, 24, 32, 48, 64, 80, 96, 112, 128};
+            int t_testes[]   = {21, 29, 37, 44, 60, 75, 106, 137, 168, 199, 230, 261}; 
+            int num_testes = sizeof(ghr_testes) / sizeof(ghr_testes[0]);
+
+            printf("\nGHR,Threshold,B1_LRU,B1_AIRA,B2_LRU,B2_AIRA,B3_LRU,B3_AIRA,B4_LRU,B4_AIRA\n");
+
+            for (int i = 0; i < num_testes; i++) {
+                int ghr = ghr_testes[i];
+                int t = t_testes[i];
+
+                float b1_lru = run_simulation(1, 0, ghr, t);
+                float b1_aira= run_simulation(1, 1, ghr, t);
+                float b2_lru = run_simulation(2, 0, ghr, t);
+                float b2_aira= run_simulation(2, 1, ghr, t);
+                float b3_lru = run_simulation(3, 0, ghr, t);
+                float b3_aira= run_simulation(3, 1, ghr, t);
+                float b4_lru = run_simulation(4, 0, ghr, t);
+                float b4_aira= run_simulation(4, 1, ghr, t);
+
+                printf("%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n", ghr, t, b1_lru, b1_aira, b2_lru, b2_aira, b3_lru, b3_aira, b4_lru, b4_aira);
+            }
+        }
+
+        if (option == 11) {
+            cache_config(); // Chama o menu de configuração dinâmica
+        }
+        
+    } while (option != 0);
+
+    return 0;
 }
