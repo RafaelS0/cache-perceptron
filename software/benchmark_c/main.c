@@ -83,7 +83,8 @@ float run_simulation(int scenario, int policy, int ghr, int threshold, int cap, 
 
     // Se o usuário ativou a L2 na configuração, instancia e encadeia ela
     if (cfg_use_l2) {
-        L2 = cache_init(cfg_l2_sets, cfg_l2_ways, cfg_l2_block, policy, ghr, threshold);
+        int num_sets_2 = L2_CAPACITY / (cfg_l2_block * cfg_l2_ways);
+        L2 = cache_init(num_sets_2, cfg_l2_ways, cfg_l2_block, policy, ghr, threshold);
         L1->l2 = L2; 
     } else {
         L1->l2 = NULL; // Garante que está desativada
@@ -139,9 +140,7 @@ int main(){
         printf("0. Sair\n");
         printf("Digite sua opcao: ");
         scanf("%d", &option);
-
-        // CORREÇÃO DE BUG: As duas chamadas soltas de run_simulation que ficavam aqui 
-        // foram removidas, pois elas executavam indevidamente para qualquer opção digitada.
+                
 
         if (option >= 1 && option <= 6)
         {
