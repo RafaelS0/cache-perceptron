@@ -106,10 +106,10 @@ float run_simulation(int scenario, int policy, int ghr, int threshold, int cap, 
     if (cfg_use_l2 && L2 != NULL) {
         int total_l2 = L2->hit_count + L2->miss_count;
         float hit_rate_l2 = (total_l2 > 0) ? ((float)L2->hit_count / total_l2) * 100.0f : 0.0f;
-        printf("     [Info Interna] -> Hit Rate L1: %.2f%% | Hit Rate L2: %.2f%%\n", hit_rate, hit_rate_l2);
+       // printf("     [Info Interna] -> Hit Rate L1: %.2f%% | Hit Rate L2: %.2f%%\n", hit_rate, hit_rate_l2);
         cache_free(L2); // Libera a L2
     } else {
-        printf("     [Info Interna] -> Hit Rate L1: %.2f%% | L2 DESATIVADA\n", hit_rate);
+        //printf("     [Info Interna] -> Hit Rate L1: %.2f%% | L2 DESATIVADA\n", hit_rate);
     }
 
     // 5. Libera a memória da L1
@@ -140,7 +140,7 @@ int main(){
         printf("0. Sair\n");
         printf("Digite sua opcao: ");
         scanf("%d", &option);
-                
+
 
         if (option >= 1 && option <= 6)
         {

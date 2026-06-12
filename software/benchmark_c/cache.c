@@ -20,6 +20,15 @@ static int log2_int(int n) {
     return bits;
 }
 
+/* Função auxiliar para imprimir o GHR em formato binário */
+static void print_ghr_binary(uint8_t ghr, int ghr_size) {
+    // Percorre os bits do mais significativo para o menos significativo
+    for (int i = ghr_size - 1; i >= 0; i--) {
+        int bit = (ghr >> i) & 1;
+        printf("%d", bit);
+    }
+}
+
 
 // MÓDULO PERCEPTRON (AIRA)
 #define PERCEPTRON_LINES 1024  // Linhas da tabela de pesos
@@ -228,6 +237,20 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
     set->ways[victim].tag = tag;
     set->ways[victim].pc = pc; // MUDOU: Agora salva o PC da instrução, não o endereço do dado
 
+  // --- DEBBUGAR ---
+    printf("[MISS] Endereço: 0x%08X (PC: 0x%08X) -> Alocado na Via %d do Set %d\n", 
+            data_address, pc, victim, index);
+    
+    if (c->replacement_policy == 1) {
+        // Se for Perceptron, mostra o GHR atualizado e os pesos para este PC
+        cache_debug_perceptron_pc(c, pc);
+    } else {
+        // Se for LRU, mostra como ficaram os contadores de idade do conjunto afetado
+        cache_print_set(c, index);
+    }
+    printf("========================================================\n");
+    // ----------------------------------------
+ 
 
     c->miss_count++;
     return 0; // MISS
@@ -281,7 +304,9 @@ void cache_debug_perceptron_pc(cache *c, unsigned int pc) {
 
     printf("\n--- Debug Perceptron para PC 0x%08X ---\n", pc);
     printf("Indice tabela: %u\n", index);
-    printf("GHR: 0x%02X\n", c->ghr);
+    printf("GHR: 0x%02X (Binario: ", c->ghr);
+    print_ghr_binary(c->ghr, c->ghr_size);
+    printf(")\n");
     printf("Score u: %d\n", u);
 
     printf("Pesos: ");
@@ -303,7 +328,9 @@ void cache_debug_set_perceptron(cache *c, int set_index) {
     cache_set *set = &c->sets[set_index];
 
     printf("\n--- Debug Set %d / Perceptron ---\n", set_index);
-    printf("GHR: 0x%02X\n", c->ghr);
+    printf("GHR: 0x%02X (Binario: ", c->ghr);
+    print_ghr_binary(c->ghr, c->ghr_size);
+    printf(")\n");
 
     for (int i = 0; i < c->num_ways; i++) {
         if (set->ways[i].valid) {
