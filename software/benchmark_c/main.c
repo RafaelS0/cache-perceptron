@@ -73,10 +73,12 @@ void cache_config() {
 
 
 
-float run_simulation(int scenario, int policy, int ghr, int threshold)
+float run_simulation(int scenario, int policy, int ghr, int threshold, int cap, int ways)
 {
     // 1. Inicializa a cache L1 usando as variáveis globais configuráveis
-    cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, policy, ghr, threshold);
+    int num_sets = cap / (L1_BLOCK_SIZE * ways);
+    cache *L1 = cache_init(num_sets, ways, L1_BLOCK_SIZE, policy, ghr, threshold);
+	
     cache *L2 = NULL;
 
     // Se o usuário ativou a L2 na configuração, instancia e encadeia ela
@@ -89,9 +91,11 @@ float run_simulation(int scenario, int policy, int ghr, int threshold)
 
     // 2. Dispara o cenário de teste selecionado
     if (scenario == 1) simulate_streaming(L1);
-    else if (scenario == 2) simulate_matrix_conv(L1);
+	else if (scenario == 2) simulate_matrix_conv(L1);
     else if (scenario == 3) simulate_zigzag_access(L1);
     else if (scenario == 4) simulate_hash_table_noise(L1);
+    else if (scenario == 5) simulate_cyclic_thrashing(L1);
+    else if (scenario == 6) simulate_conditional_pattern(L1);
 
     // 3. Calcula matematicamente a taxa de acerto (Hit Rate) final da L1
     int total_accesses = L1->hit_count + L1->miss_count;
@@ -126,8 +130,10 @@ int main(){
         printf("2. Matrix Convolution (Reuso Temporal)\n");
         printf("3. ZigZag Access (Acesso Correlacionado)\n");
         printf("4. Hash Table Noise (Ruidos)\n");
-        printf("5. Validacao funcional LRU\n");
-        printf("6. Validacao funcional Perceptron\n");
+        printf("5. Cyclic Thrashing\n");
+		printf("6. Conditional Pattern\n");
+		printf("7. Validacao funcional LRU\n");
+		printf("8. Validacao funcional Perceptron\n");
         printf("10. Rodar Grid Tests Automatizado (Gera CSV)\n");
         printf("11. Configurar Parametros da Cache (L2 / Vias)\n");
         printf("0. Sair\n");
@@ -137,12 +143,12 @@ int main(){
         // CORREÇÃO DE BUG: As duas chamadas soltas de run_simulation que ficavam aqui 
         // foram removidas, pois elas executavam indevidamente para qualquer opção digitada.
 
-        if (option >= 1 && option <= 4)
+        if (option >= 1 && option <= 6)
         {
-            const char *nomes[] = {"", "Streaming", "Matrix", "ZigZag", "Hash Noise"};
+            const char *nomes[] = {"", "Streaming", "Matrix", "ZigZag", "Hash Noise", "Cyclic", "Conditional"};
             
-            float hit_lru = run_simulation(option, 0, default_ghr, default_t);  
-            float hit_aira = run_simulation(option, 1, default_ghr, default_t);
+            float hit_lru = run_simulation(option, 0, default_ghr, default_t, L1_CAPACITY, L1_WAYS);  
+            float hit_aira = run_simulation(option, 1, default_ghr, default_t, L1_CAPACITY, L1_WAYS);
       
             printf(" BENCHMARK: %s\n", nomes[option]);
             printf("\n===================================================\n");
@@ -156,7 +162,7 @@ int main(){
             printf("===================================================\n\n");
         }
 
-        if (option == 5) {
+        if (option == 7) {
             // Adaptado para também usar os parâmetros configurados dinamicamente
             cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 0, default_ghr, default_t);
             simulate_validation_lru(L1);
@@ -164,7 +170,7 @@ int main(){
             continue;
         }
 
-        if (option == 6) {
+        if (option == 8) {
             // Adaptado para também usar os parâmetros configurados dinamicamente
             cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 1, default_ghr, default_t);
             simulate_validation_perceptron(L1);
@@ -177,23 +183,39 @@ int main(){
             int t_testes[]   = {21, 29, 37, 44, 60, 75, 106, 137, 168, 199, 230, 261}; 
             int num_testes = sizeof(ghr_testes) / sizeof(ghr_testes[0]);
 
-            printf("\nGHR,Threshold,B1_LRU,B1_AIRA,B2_LRU,B2_AIRA,B3_LRU,B3_AIRA,B4_LRU,B4_AIRA\n");
+			int cap_testes[] = {2048, 4096, 16384}; 
+	        int way_testes[] = {1, 2, 4};
+	        int num_arqs = 3;
 
-            for (int i = 0; i < num_testes; i++) {
-                int ghr = ghr_testes[i];
-                int t = t_testes[i];
+            printf("\nL1_Cap(KB),L1_Ways,GHR,Threshold,B1_LRU,B1_AIRA,B2_LRU,B2_AIRA,B3_LRU,B3_AIRA,B5_LRU,B5_AIRA,B6_LRU,B6_AIRA\n");
 
-                float b1_lru = run_simulation(1, 0, ghr, t);
-                float b1_aira= run_simulation(1, 1, ghr, t);
-                float b2_lru = run_simulation(2, 0, ghr, t);
-                float b2_aira= run_simulation(2, 1, ghr, t);
-                float b3_lru = run_simulation(3, 0, ghr, t);
-                float b3_aira= run_simulation(3, 1, ghr, t);
-                float b4_lru = run_simulation(4, 0, ghr, t);
-                float b4_aira= run_simulation(4, 1, ghr, t);
-
-                printf("%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n", ghr, t, b1_lru, b1_aira, b2_lru, b2_aira, b3_lru, b3_aira, b4_lru, b4_aira);
-            }
+            // varia a Arquitetura da Cache
+	        for (int a = 0; a < num_arqs; a++) {
+	            int cap = cap_testes[a];
+	            int ways = way_testes[a];
+	            
+	            //varia a IA (GHR e Threshold)
+	            for (int i = 0; i < num_testes; i++) {
+	                int ghr = ghr_testes[i];
+	                int t = t_testes[i];
+	    
+	                float b1_lru = run_simulation(1, 0, ghr, t, cap, ways);
+	                float b1_aira= run_simulation(1, 1, ghr, t, cap, ways);
+	                float b2_lru = run_simulation(2, 0, ghr, t, cap, ways);
+	                float b2_aira= run_simulation(2, 1, ghr, t, cap, ways);
+	                float b3_lru = run_simulation(3, 0, ghr, t, cap, ways);
+	                float b3_aira= run_simulation(3, 1, ghr, t, cap, ways);
+	                float b4_lru = run_simulation(4, 0, ghr, t, cap, ways);
+	                float b4_aira= run_simulation(4, 1, ghr, t, cap, ways);
+	                float b5_lru = run_simulation(5, 0, ghr, t, cap, ways);
+	                float b5_aira= run_simulation(5, 1, ghr, t, cap, ways);
+	                float b6_lru = run_simulation(6, 0, ghr, t, cap, ways);
+	                float b6_aira= run_simulation(6, 1, ghr, t, cap, ways);
+	    
+	                printf("%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",cap/1024, ways, ghr, t,
+	                        b1_lru, b1_aira, b2_lru, b2_aira, b3_lru, b3_aira, b5_lru, b5_aira, b6_lru, b6_aira);
+	            }
+	        }
         }
 
         if (option == 11) {
