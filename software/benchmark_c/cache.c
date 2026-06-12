@@ -171,6 +171,22 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
                 c->ghr = (c->ghr << 1) | 1;        // GHR recebe 1 (Hit)
             }
 
+
+            // --- BLOCO DE DEBUG PARA HITS ---
+            printf("=======================================================\n");
+            printf("[HIT] Endereço: 0x%08X (PC: 0x%08X) -> Encontrado na Via %d do Set %d\n", 
+                    data_address, pc, i, index);
+            
+            if (c->replacement_policy == 1) {
+                // Mostra o Perceptron com o GHR em binário que acabou de receber o bit '1'
+                cache_debug_perceptron_pc(c, pc);
+            } else {
+                // Se for LRU, mostra como ficaram os contadores de idade atualizados
+                cache_print_set(c, index);
+            }
+            printf("=======================================================\n");
+            // -----------------------------------------
+
             c->hit_count++;
             return 1; // HIT
         }
