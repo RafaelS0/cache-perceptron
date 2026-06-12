@@ -90,6 +90,40 @@ void simulate_hash_table_noise(cache *c) {
     }
 }
 
+// Benchmark 5(Thrashing Cíclico)
+//varrer um array grande de forma contínua
+void simulate_cyclic_thrashing(cache *c) {
+    unsigned int base_addr = 0x300000;
+    unsigned int pc_thrash = 0x00400030;
+    
+    int blocks_to_read = 1000; 
+    
+    for (int rep = 0; rep < 100; rep++) {
+        for (int i = 0; i < blocks_to_read; i++) {
+            cache_access(c, base_addr + (i * 32), pc_thrash);
+        }
+    }
+}
+
+// Benchmark 6(Padrão Condicional Longo)
+//simula acessos guiados por lógicas de if/else rítmicas
+void simulate_conditional_pattern(cache *c) {
+    unsigned int base_A = 0x400000;
+    unsigned int base_B = 0x401000;
+    unsigned int base_C = 0x402000;
+    unsigned int pc_cond = 0x00400034;
+    
+    for (int i = 0; i < 50000; i++) {
+        int state = i % 4; 
+        
+        //Acesso aos mesmos 3 blocos em padrão rítmico
+        if (state == 0)      cache_access(c, base_A, pc_cond);
+        else if (state == 1) cache_access(c, base_B, pc_cond);
+        else if (state == 2) cache_access(c, base_A, pc_cond);
+        else                 cache_access(c, base_C, pc_cond);
+    }
+}
+
 void simulate_validation_lru(cache *c) {
     unsigned int important_pc = 0x100;
     unsigned int pc_2 = 0x200;
