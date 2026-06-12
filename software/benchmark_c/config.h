@@ -24,6 +24,8 @@
 #define L1_WAYS          2      /* vias  — trocar para 4 para testar 4-way  */
 #define L1_NUM_SETS      (L1_CAPACITY / (L1_BLOCK_SIZE * L1_WAYS))
 
+#define USE_L2 0
+
 /* =====================================================================
  * CACHE L2 (Unificada)
  * Capacidade: 32KB a 128KB

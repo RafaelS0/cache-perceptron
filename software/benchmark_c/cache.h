@@ -22,7 +22,7 @@ typedef struct {
 } cache_set;
 
 // Estrutura da cache
-typedef struct {
+typedef struct cache {
     cache_set *sets;            // array de conjuntos
     int num_sets;               // número de conjuntos
     int num_ways;               // número de vias por conjunto
@@ -38,6 +38,10 @@ typedef struct {
     int8_t **weights_table;
     int ghr_size;               
     int threshold;
+    
+    // cache L2
+    struct cache *l2;          // ponteiro para cache L2 
+
 } cache;
 
 /* Inicializa a cache com os parâmetros especificados */
