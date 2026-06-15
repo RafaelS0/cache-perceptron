@@ -34,6 +34,7 @@ typedef struct cache {
     int replacement_policy;     // 0: LRU, 1: PERCEPTRON
     
     // perceptron
+    int hysteresis;
     uint8_t ghr;                // Global History Register (8 bits ou X bits)
     int8_t **weights_table;
     int ghr_size;               
@@ -45,7 +46,7 @@ typedef struct cache {
 } cache;
 
 /* Inicializa a cache com os parâmetros especificados */
-cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy, int ghr_size, int threshold);
+cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy, int ghr_size, int threshold, int hysteresis);
 
 /* Libera a memória da cache */
 void cache_free(cache *c);

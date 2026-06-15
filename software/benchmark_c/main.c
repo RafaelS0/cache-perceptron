@@ -20,6 +20,7 @@ int cfg_l1_block = L1_BLOCK_SIZE;
 int cfg_l2_sets  = L2_NUM_SETS;
 int cfg_l2_ways  = L2_WAYS;
 int cfg_l2_block = L2_BLOCK_SIZE;
+int cfg_hysteresis = 2; // Valor padrão de histerese para o Perceptron
 
 // Função interativa para alterar os parâmetros em tempo de execução
 void cache_config() {
@@ -35,16 +36,19 @@ void cache_config() {
     printf("0. Voltar ao Menu Principal\n");
     printf("---------------------------------------------------\n");
     printf("Digite sua opção: ");
-    scanf("%d", &sub_option);
+    if (scanf("%d", &sub_option) != 1) {
+        sub_option = 0;
+        int _ch; while ((_ch = getchar()) != '\n' && _ch != EOF) ;
+    }
 
-    if (sub_option == 1) {
+        if (sub_option == 1) {
         cfg_use_l2 = !cfg_use_l2; // Inverte entre 0 e 1
         printf("\n[Sucesso] Cache L2 alterada para: %s\n", cfg_use_l2 ? "LIGADA" : "DESLIGADA");
     } 
     else if (sub_option == 2) {
         printf("Digite o novo número de vias para L1: ");
-        scanf("%d", &cfg_l1_ways);
-		if(cfg_l1_ways != 4 && cfg_l1_ways != 8){
+        if (scanf("%d", &cfg_l1_ways) != 1) { cfg_l1_ways = L1_WAYS; int _ch; while ((_ch = getchar()) != '\n' && _ch != EOF) ; }
+	if(cfg_l1_ways != 4 && cfg_l1_ways != 8){
 		cfg_l1_ways = L1_WAYS; // Restaura para o valor padrão
 		printf("\n[Erro] Número de vias para L1 inválido. Deve ser 4 ou 8. Revertendo para o valor padrão (%d vias).\n", cfg_l1_ways);
 		} else {
@@ -53,7 +57,7 @@ void cache_config() {
 }
     else if (sub_option == 3) {
         printf("Digite o novo número de vias para L2: ");
-        scanf("%d", &cfg_l2_ways);
+        if (scanf("%d", &cfg_l2_ways) != 1) { cfg_l2_ways = L2_WAYS; int _ch; while ((_ch = getchar()) != '\n' && _ch != EOF) ; }
 		if(cfg_l2_ways != 8 && cfg_l2_ways != 16){
 		cfg_l2_ways = L2_WAYS; // Restaura para o valor padrão
 		printf("\n[Erro] Número de vias para L2 inválido. Deve ser 8 ou 16. Revertendo para o valor padrão (%d vias).\n", cfg_l2_ways);
@@ -75,16 +79,16 @@ void cache_config() {
 
 float run_simulation(int scenario, int policy, int ghr, int threshold, int cap, int ways)
 {
-    // 1. Inicializa a cache L1 usando as variáveis globais configuráveis
+    // 1. Inicializa a cache L1 passando a variável 'cfg_hysteresis' no final
     int num_sets = cap / (L1_BLOCK_SIZE * ways);
-    cache *L1 = cache_init(num_sets, ways, L1_BLOCK_SIZE, policy, ghr, threshold);
-	
+    cache *L1 = cache_init(num_sets, ways, L1_BLOCK_SIZE, policy, ghr, threshold, cfg_hysteresis);
+    
     cache *L2 = NULL;
 
-    // Se o usuário ativou a L2 na configuração, instancia e encadeia ela
+    // Se o usuário ativou a L2 na configuração, instancia e passa a histerese também
     if (cfg_use_l2) {
         int num_sets_2 = L2_CAPACITY / (cfg_l2_block * cfg_l2_ways);
-        L2 = cache_init(num_sets_2, cfg_l2_ways, cfg_l2_block, policy, ghr, threshold);
+        L2 = cache_init(num_sets_2, cfg_l2_ways, cfg_l2_block, policy, ghr, threshold, cfg_hysteresis);
         L1->l2 = L2; 
     } else {
         L1->l2 = NULL; // Garante que está desativada
@@ -106,6 +110,7 @@ float run_simulation(int scenario, int policy, int ghr, int threshold, int cap, 
     if (cfg_use_l2 && L2 != NULL) {
         int total_l2 = L2->hit_count + L2->miss_count;
         float hit_rate_l2 = (total_l2 > 0) ? ((float)L2->hit_count / total_l2) * 100.0f : 0.0f;
+        (void)hit_rate_l2; // variável calculada para depuração ocasional
        // printf("     [Info Interna] -> Hit Rate L1: %.2f%% | Hit Rate L2: %.2f%%\n", hit_rate, hit_rate_l2);
         cache_free(L2); // Libera a L2
     } else {
@@ -139,7 +144,7 @@ int main(){
         printf("11. Configurar Parametros da Cache (L2 / Vias)\n");
         printf("0. Sair\n");
         printf("Digite sua opcao: ");
-        scanf("%d", &option);
+        if (scanf("%d", &option) != 1) { option = 0; int _ch; while ((_ch = getchar()) != '\n' && _ch != EOF) ; }
 
 
         if (option >= 1 && option <= 6)
@@ -163,7 +168,7 @@ int main(){
 
         if (option == 7) {
             // Adaptado para também usar os parâmetros configurados dinamicamente
-            cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 0, default_ghr, default_t);
+            cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 0, default_ghr, default_t, cfg_hysteresis);
             simulate_validation_lru(L1);
             cache_free(L1);
             continue;
@@ -171,7 +176,7 @@ int main(){
 
         if (option == 8) {
             // Adaptado para também usar os parâmetros configurados dinamicamente
-            cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 1, default_ghr, default_t);
+            cache *L1 = cache_init(cfg_l1_sets, cfg_l1_ways, cfg_l1_block, 1, default_ghr, default_t, cfg_hysteresis);
             simulate_validation_perceptron(L1);
             cache_free(L1);
             continue;
@@ -204,8 +209,9 @@ int main(){
 	                float b2_aira= run_simulation(2, 1, ghr, t, cap, ways);
 	                float b3_lru = run_simulation(3, 0, ghr, t, cap, ways);
 	                float b3_aira= run_simulation(3, 1, ghr, t, cap, ways);
-	                float b4_lru = run_simulation(4, 0, ghr, t, cap, ways);
-	                float b4_aira= run_simulation(4, 1, ghr, t, cap, ways);
+                    float b4_lru = run_simulation(4, 0, ghr, t, cap, ways);
+                    float b4_aira= run_simulation(4, 1, ghr, t, cap, ways);
+                    (void)b4_lru; (void)b4_aira; // valores calculados, não utilizados na saída
 	                float b5_lru = run_simulation(5, 0, ghr, t, cap, ways);
 	                float b5_aira= run_simulation(5, 1, ghr, t, cap, ways);
 	                float b6_lru = run_simulation(6, 0, ghr, t, cap, ways);

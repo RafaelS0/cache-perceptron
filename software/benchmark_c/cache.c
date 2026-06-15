@@ -51,16 +51,29 @@ static int perceptron_predict(cache *c, unsigned int pc) {
     return u;
 }
 
-/* treina (atualiza) os pesos quando necessário */
+/* aqui que essa bomba treina (atualiza) os pesos quando necessário - HISTERESE */
 static void perceptron_train(cache *c, unsigned int pc, int d, int u) {
-    // só treina se errou a predição ou se a confiança (u) for menor que o THRESHOLD
-    if ((u >= 0) != (d == 1) || abs(u) <= c->threshold) {
-        //unsigned int index = (pc >> c->offset_bits) & (PERCEPTRON_LINES - 1);
+    // Agora usamos a histerese guardada na estrutura da cache
+    int hysteresis = c->hysteresis; 
+    int effective_threshold = c->threshold;
+
+    // d == 1 significa Hit, d == -1 significa Miss.
+    int predicao_correta = ((u >= 0) == (d == 1));
+
+    // Lógica da Histerese baseada no parâmetro configurado
+    if (predicao_correta) {
+        effective_threshold = c->threshold - hysteresis;
+        if (effective_threshold < 0) effective_threshold = 0;
+    } else {
+        effective_threshold = c->threshold + hysteresis;
+    }
+
+    // Só treina se errou a predição OU se a magnitude da confiança (u) for menor que o limiar efetivo
+    if (!predicao_correta || abs(u) <= effective_threshold) {
         unsigned int index = (pc >> 2) & (PERCEPTRON_LINES - 1);
         
         // Atualiza o Bias
-        int w = c->weights_table[index][0] + d; // d é 1 (Hit) ou -1 (Miss)
-        // saturação: Impede que o número de 8 bits dê inverta (overflow)
+        int w = c->weights_table[index][0] + d;
         if (w > 127) w = 127; else if (w < -128) w = -128;
         c->weights_table[index][0] = (int8_t)w;
 
@@ -68,7 +81,6 @@ static void perceptron_train(cache *c, unsigned int pc, int d, int u) {
         for (int i = 1; i <= c->ghr_size; i++) {
             int x_i = (c->ghr & (1 << (i - 1))) ? 1 : -1;
             w = c->weights_table[index][i] + (d * x_i);
-            // saturação
             if (w > 127) w = 127; else if (w < -128) w = -128;
             c->weights_table[index][i] = (int8_t)w;
         }
@@ -81,7 +93,7 @@ static void perceptron_train(cache *c, unsigned int pc, int d, int u) {
  * Aloca e inicializa a cache com os parâmetros fornecidos.
  * Retorna ponteiro para a cache criada, ou NULL em caso de erro.
  * --------------------------------------------------------------------- */
-cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy, int ghr_size, int threshold) {
+cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_policy, int ghr_size, int threshold, int hysteresis) {
 
     /* 1. Aloca a struct principal */
     cache *c = (cache *) malloc(sizeof(cache));
@@ -94,45 +106,34 @@ cache *cache_init(int num_sets, int num_ways, int block_size, int replacement_po
     c->num_sets           = num_sets;
     c->num_ways           = num_ways;
     c->block_size         = block_size;
-    c->offset_bits        = log2_int(block_size); // log2(block_size)
-    c->index_bits         = log2_int(num_sets);   // log2(num_sets)
+    c->offset_bits        = log2_int(block_size); 
+    c->index_bits         = log2_int(num_sets);   
     c->hit_count          = 0;
     c->miss_count         = 0;
-    c->replacement_policy = replacement_policy;   // 0: LRU, 1: Perceptron
-    c->ghr_size  = ghr_size;
-    c->threshold = threshold;
-
-    /* 3. Aloca o array de conjuntos */
-    /*c->sets = (cache_set *) malloc(num_sets * sizeof(cache_set));
-    if (c->sets == NULL) {
-        printf("Erro: falha ao alocar conjuntos\n");
-        free(c);
-        return NULL;
-    }*/
-    
-
+    c->replacement_policy = replacement_policy;   
+    c->ghr_size           = ghr_size;
+    c->threshold          = threshold;
+    c->hysteresis         = hysteresis; 
     /* 4. Para cada conjunto, aloca o array de vias e inicializa os blocos */
     c->sets = (cache_set *) malloc(num_sets * sizeof(cache_set));
     for (int i = 0; i < num_sets; i++) {
         c->sets[i].num_ways = num_ways;
         c->sets[i].ways = (cache_block *) malloc(num_ways * sizeof(cache_block));
-        /* 5. Inicializa cada bloco do conjunto */
         for (int j = 0; j < num_ways; j++) {
-            c->sets[i].ways[j].valid       = 0; // inválido
+            c->sets[i].ways[j].valid       = 0; 
             c->sets[i].ways[j].tag         = 0;
             c->sets[i].ways[j].lru_counter = 0;
             c->sets[i].ways[j].pc          = 0;
         }
     }
     
-    // inicializa as variáveis do Perceptron
+    // Inicializa as variáveis do Perceptron
     c->ghr = 0;
     c->weights_table = (int8_t **) malloc(PERCEPTRON_LINES * sizeof(int8_t *));
     for (int i = 0; i < PERCEPTRON_LINES; i++) {
-        // aloca dinamicamente: Bias (1) + Tamanho do GHR
-        c->weights_table[i] = (int8_t *) calloc(c->ghr_size + 1, sizeof(int8_t)); // calloc zera pesos
+        c->weights_table[i] = (int8_t *) calloc(c->ghr_size + 1, sizeof(int8_t)); 
     }
-    c->l2 = NULL; // Inicializa ponteiro para cache L2 como NULL
+    c->l2 = NULL; 
     return c;
 }
 
@@ -145,6 +146,7 @@ int cache_access(cache *c, unsigned int data_address, unsigned int pc) {
 
     /* --- Passo 1: fatiar o endereço em offset, índice e tag --- */
     unsigned int offset = data_address & ((1 << c->offset_bits) - 1);                    // não utilizado ainda
+    (void)offset;
     unsigned int index  = (data_address >> c->offset_bits) & ((1 << c->index_bits) - 1); // índice do conjunto
     unsigned int tag    = data_address >> (c->offset_bits + c->index_bits);               // tag do bloco
 
