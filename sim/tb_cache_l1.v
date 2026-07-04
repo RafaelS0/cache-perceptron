@@ -1,138 +1,119 @@
-`timescale 1ps/1ps
+module tb_cache_lru;
 
-module tb_cache_l1;
+    reg         clk;
+    reg         rst;
+    reg         req_valid;
+    reg [31:0]  pc_addr;
+    reg         policy_select;
 
-    localparam ADDR_WIDTH   = 32;
-    localparam CACHE_SIZE   = 4096;
-    localparam BLOCK_SIZE   = 32;
-    localparam NUM_WAYS     = 2;
-    localparam NUM_SETS     = 64;
-    localparam TAG_WIDTH    = 21;
-    localparam INDEX_WIDTH  = 6;
-    localparam OFFSET_WIDTH = 5;
+    wire        hit;
+    wire        miss;
+    wire        victim_way;
 
-    reg clk;
-    reg reset;
+    // Endereços: todos pertencem ao set 0
+    localparam [31:0] ADDR_A = 32'h0000_0000; // tag 0, index 0
+    localparam [31:0] ADDR_B = 32'h0000_0400; // tag 1, index 0
+    localparam [31:0] ADDR_C = 32'h0000_0800; // tag 2, index 0
 
-    reg cpu_req;
-    reg [ADDR_WIDTH-1:0] cpu_addr;
+    // Sinais auxiliares para facilitar a leitura no GTKWave
+    reg [3:0] etapa;
+    reg [2:0] repeticao;
+    integer k;
 
-    wire cpu_hit;
-    wire cpu_ready;
-
-    // Sinais auxiliares para waveform
-    reg [1:0] instr_id;
-    reg [7:0] loop_counter;
-    reg [31:0] current_addr;
-    reg [31:0] current_pc;
-
-    /*
-        instr_id:
-        0 = ACCESS HOT A
-        1 = ACCESS HOT A de novo
-        2 = ACCESS STREAM
-    */
-
-    cache_l1 #(
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .CACHE_SIZE(CACHE_SIZE),
-        .BLOCK_SIZE(BLOCK_SIZE),
-        .NUM_WAYS(NUM_WAYS),
-        .NUM_SETS(NUM_SETS),
-        .TAG_WIDTH(TAG_WIDTH),
-        .INDEX_WIDTH(INDEX_WIDTH),
-        .OFFSET_WIDTH(OFFSET_WIDTH)
-    ) dut (
+    // Instância da cache
+    cache dut (
         .clk(clk),
-        .reset(reset),
-
-        .cpu_req(cpu_req),
-        .cpu_addr(cpu_addr),
-
-        .cpu_hit(cpu_hit),
-        .cpu_ready(cpu_ready)
+        .rst(rst),
+        .req_valid(req_valid),
+        .pc_addr(pc_addr),
+        .policy_select(policy_select),
+        .hit(hit),
+        .miss(miss),
+        .victim_way(victim_way)
     );
 
+    // Aliases para enxergar explicitamente o set 0 na forma de onda
+    wire        valid_way0_set0;
+    wire        valid_way1_set0;
+    wire [21:0] tag_way0_set0;
+    wire [21:0] tag_way1_set0;
+    wire        lru_victim_set0;
+    wire        policy_victim_set0;
+
+    assign valid_way0_set0  = dut.valid_way0[0];
+    assign valid_way1_set0  = dut.valid_way1[0];
+    assign tag_way0_set0    = dut.tag_way0[0];
+    assign tag_way1_set0    = dut.tag_way1[0];
+    assign lru_victim_set0  = dut.lru_victim_way;
+    assign policy_victim_set0 = dut.policy_victim_way;
+
+    // Clock: período de 10 ns
     always #5 clk = ~clk;
 
-    task access_cache;
-        input [1:0] op_id;
-        input [31:0] addr;
-        input [31:0] pc;
+    // Envia uma requisição válida por um ciclo
+    task envia_endereco;
+        input [31:0] endereco;
         begin
-            instr_id     <= op_id;
-            current_addr <= addr;
-            current_pc   <= pc;
+            @(negedge clk);
+            pc_addr   = endereco;
+            req_valid = 1'b1;
 
             @(posedge clk);
-            cpu_req  <= 1'b1;
-            cpu_addr <= addr;
-
-            @(posedge clk);
-            cpu_req <= 1'b0;
-
-            wait(cpu_ready == 1'b1);
-
-            @(posedge clk);
+            #1;
+            req_valid = 1'b0;
         end
     endtask
 
-    integer k;
-
     initial begin
-        clk          = 1'b0;
-        reset        = 1'b1;
-        cpu_req      = 1'b0;
-        cpu_addr     = 32'b0;
+        $dumpfile("tb_cache_lru.vcd");
+        $dumpvars(0, tb_cache_lru);
 
-        instr_id     = 2'b00;
-        loop_counter = 8'b0;
-        current_addr = 32'b0;
-        current_pc   = 32'b0;
+        clk           = 1'b0;
+        rst           = 1'b1;
+        req_valid     = 1'b0;
+        pc_addr       = 32'h0000_0000;
+        policy_select = 1'b0; // 0 = LRU
+        etapa         = 4'd0;
+        repeticao     = 3'd0;
 
-        repeat (4) @(posedge clk);
-        reset = 1'b0;
-        repeat (2) @(posedge clk);
+        // Reset
+        #12;
+        rst = 1'b0;
 
-        /*
-            Sequência:
-            A = endereço quente
-            STREAM = endereços diferentes no mesmo set
+        // Etapa 1:
+        // Miss compulsório: A entra na via 0
+        etapa = 4'd1;
+        envia_endereco(ADDR_A);
 
-            Todos os STREAMs abaixo caem no set 0:
-            0x00000800
-            0x00001000
-            0x00001800
-            ...
-        */
+        // Etapa 2:
+        // Miss inicial: B entra na via 1
+        etapa = 4'd2;
+        envia_endereco(ADDR_B);
 
-        for (k = 0; k < 8; k = k + 1) begin
-            loop_counter <= k[7:0];
-
-            // I0: acesso quente A
-            access_cache(
-                2'd0,
-                32'h00000000,
-                32'h00400000
-            );
-
-            // I1: acesso quente A novamente
-            access_cache(
-                2'd1,
-                32'h00000000,
-                32'h00400004
-            );
-
-            // I2: acesso streaming no mesmo set
-            access_cache(
-                2'd2,
-                32'h00000800 + (k * 32'h00000800),
-                32'h00400008
-            );
+        // Etapa 3:
+        // Cinco hits em B.
+        // B fica como a via mais recentemente usada.
+        // A deve permanecer como LRU.
+        etapa = 4'd3;
+        for (k = 0; k < 5; k = k + 1) begin
+            repeticao = k + 1;
+            envia_endereco(ADDR_B);
         end
 
-        #50;
-        $stop;
+        repeticao = 3'd0;
+
+        // Etapa 4:
+        // C causa miss no set cheio.
+        // Como B foi acessado por último, o LRU deve escolher a via 0,
+        // removendo A e colocando C na via 0.
+        etapa = 4'd4;
+        envia_endereco(ADDR_C);
+
+        // Etapa final para observar o resultado
+        etapa = 4'd5;
+        repeat (2) @(posedge clk);
+
+        $finish;
     end
 
 endmodule

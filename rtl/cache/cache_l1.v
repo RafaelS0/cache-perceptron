@@ -1,113 +1,149 @@
-module cache_l1 #(
-    parameter ADDR_WIDTH   = 32, //tamanho do endereço
-    parameter BLOCK_SIZE   = 32,
-    parameter NUM_WAYS     = 2,   //// capacidade = SETS_64 × WAYS_2 × BLOCK_32 = 4096 bytes = 4 KB
-    parameter NUM_SETS     = 64,
-    parameter TAG_WIDTH    = 21, // 21 bits de TAG
-    parameter INDEX_WIDTH  = 6,  // 6 bits de INDEX
-    parameter OFFSET_WIDTH = 5   // 5 bits de offset
+module cache #(
+    parameter GHR_LEN = 8
 )(
-    input wire clk,
-    input wire reset,
+    input  wire        clk,
+    input  wire        rst,
+    input  wire        req_valid,
+    input  wire [31:0] pc_addr,
+    input  wire        policy_select,
 
-    input wire cpu_req, // se 1 o endereço e´ lido, se 0 don't care
-    input wire [ADDR_WIDTH-1:0] cpu_addr, //declarando cpu_addr com 32 bits
-
-    output reg cpu_hit,  // 1 = hit 0= miss
-    output reg cpu_ready // se a cache terminou de acessar
+    output wire        hit,
+    output wire        miss,
+    output reg         victim_way
 );
 
-    // Campos do endereço
-    wire [INDEX_WIDTH-1:0] index;  // criando index com 6 bits
-    wire [TAG_WIDTH-1:0] tag; // criando tag com 21 bits
+    // Cache: 64 conjuntos, 2 vias
+    reg valid_way0 [0:63];
+    reg valid_way1 [0:63];
 
-    assign index = cpu_addr[OFFSET_WIDTH + INDEX_WIDTH - 1 : OFFSET_WIDTH]; // index recebe dados da cpu_addr
-    assign tag   = cpu_addr[ADDR_WIDTH-1 : OFFSET_WIDTH + INDEX_WIDTH]; // tag recebe os valores da cpu_addr
+    reg [21:0] tag_way0 [0:63];
+    reg [21:0] tag_way1 [0:63];
 
-    // Metadados da cache
-    reg valid [0:NUM_SETS-1][0:NUM_WAYS-1];
-    reg [TAG_WIDTH-1:0] tag_array [0:NUM_SETS-1][0:NUM_WAYS-1];
+    // PC associado à linha, usado pelo perceptron
+    reg [31:0] pc_way0 [0:63];
+    reg [31:0] pc_way1 [0:63];
 
-    // LRU para 2 vias
-    // lru[set] = 0 -> via 0 é a vítima
-    // lru[set] = 1 -> via 1 é a vítima
-    reg lru [0:NUM_SETS-1];
+    // Histórico global: 1 = hit, 0 = miss
+    reg [GHR_LEN-1:0] ghr;
 
-    // Sinais auxiliares
+    wire [5:0]  index;
+    wire [21:0] tag;
+
     wire hit_way0;
     wire hit_way1;
-    wire hit;
+    wire set_full;
 
-    assign hit_way0 = valid[index][0] && (tag_array[index][0] == tag);//recebe 1 se via 0 do set escolhido esta valida E a tag armazenada nela for igual a tag do end 
-    assign hit_way1 = valid[index][1] && (tag_array[index][1] == tag);// mesma coisa so que para via 1
-    assign hit = hit_way0 || hit_way1; 
+    wire lru_victim_way;
+    wire perceptron_victim_way;
+    wire policy_victim_way;
+    wire selected_way;
 
-    reg victim_way;
+  
+    wire aira_req_victim;
 
-    integer i, j;
+    assign index = pc_addr[9:4];
+    assign tag   = pc_addr[31:10];
 
-    always @(posedge clk or posedge reset) begin
-       /////////////////////////RESET/////////////////////////
-	 if (reset) begin
-            cpu_hit   <= 1'b0;
-            cpu_ready <= 1'b0;
-            victim_way <= 1'b0;
+    assign hit_way0 =
+        valid_way0[index] && (tag_way0[index] == tag);
 
-            for (i = 0; i < NUM_SETS; i = i + 1) begin
-                lru[i] <= 1'b0;
+    assign hit_way1 =
+        valid_way1[index] && (tag_way1[index] == tag);
 
-                for (j = 0; j < NUM_WAYS; j = j + 1) begin
-                    valid[i][j] <= 1'b0;
-                    tag_array[i][j] <= {TAG_WIDTH{1'b0}};
-                end
+    assign hit  = req_valid && (hit_way0 || hit_way1);
+    assign miss = req_valid && !hit;
+
+    assign set_full = valid_way0[index] && valid_way1[index];
+
+    // 0 = LRU | 1 = AIRA/perceptron
+    assign policy_victim_way =
+        policy_select ? perceptron_victim_way : lru_victim_way;
+
+    
+// Via inválida sempre tem prioridade
+    assign selected_way =
+        !valid_way0[index] ? 1'b0 :
+        !valid_way1[index] ? 1'b1 :
+                             policy_victim_way;
+
+   
+
+    // Só pede decisão ao perceptron em miss com o conjunto cheio.
+    assign aira_req_victim =
+        miss && set_full && policy_select;
+
+ replacement_lru #(
+    .NUM_SETS(64)
+) u_lru (
+    .clk(clk),
+    .reset(rst),
+
+    .access(req_valid),
+    .index(index),
+
+    .hit(hit),
+    .hit_way0(hit_way0),
+    .hit_way1(hit_way1),
+
+    .valid_way0(valid_way0[index]),
+    .valid_way1(valid_way1[index]),
+
+    .victim_way(lru_victim_way),
+    .victim_ready()
+);
+
+    aira_replacement #(
+        .GHR_LEN(GHR_LEN),
+        .WEIGHT_BITS(8),
+        .TABLE_LINES(64),
+        .THRESHOLD(29)
+    ) u_aira (
+        .clk(clk),
+        .rst(rst),
+
+        .req_victim(aira_req_victim),
+        .pc_way0(pc_way0[index]),
+        .pc_way1(pc_way1[index]),
+        .current_ghr(ghr),
+        .victim_way(perceptron_victim_way),
+
+        .train_valid(req_valid),
+        .train_pc(pc_addr),
+        .train_hit(hit),
+        .train_ghr(ghr)
+    );
+
+    integer i;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            for (i = 0; i < 64; i = i + 1) begin
+                valid_way0[i] <= 1'b0;
+                valid_way1[i] <= 1'b0;
             end
-        end/////////////////////////RESET/////////////////////////
+
+            ghr        <= {GHR_LEN{1'b0}};
+            victim_way <= 1'b0;
+        end
         else begin
-            cpu_ready <= 1'b0; // cpu = 0 
-            cpu_hit   <= 1'b0; // hit = 0
 
-            if (cpu_req) begin //se for 1 - cpu recebeu uma requesiçao 
-                cpu_ready <= 1'b1; // cpu = 1 - cpu fica pronta
+            // O AIRA usa o GHR anterior no acesso atual.
+            // O novo resultado vale para o próximo acesso.
+            if (req_valid)
+                ghr <= {ghr[GHR_LEN-2:0], hit};
 
-                // HIT
-                if (hit) begin // se o acesso for um hit
-                    cpu_hit <= 1'b1;
+            if (miss) begin
+                victim_way <= selected_way;
 
-                    // Atualiza LRU
-                    if (hit_way0) begin
-                        lru[index] <= 1'b1; // via 1 vira vítima
-                    end
-                    else if (hit_way1) begin
-                        lru[index] <= 1'b0; // via 0 vira vítima
-                    end
+                if (selected_way == 1'b0) begin
+                    valid_way0[index] <= 1'b1;
+                    tag_way0[index]   <= tag;
+                    pc_way0[index]    <= pc_addr;
                 end
-
-                // MISS
-                else begin //se for um miss
-                    cpu_hit <= 1'b0; 
-
-                    // Escolhe vítima
-                    if (!valid[index][0]) begin
-                        victim_way = 1'b0;
-                    end
-                    else if (!valid[index][1]) begin
-                        victim_way = 1'b1;
-                    end
-                    else begin
-                        victim_way = lru[index];
-                    end
-
-                    // Substitui bloco
-                    valid[index][victim_way] <= 1'b1;
-                    tag_array[index][victim_way] <= tag;
-
-                    // Atualiza LRU
-                    if (victim_way == 1'b0) begin
-                        lru[index] <= 1'b1;
-                    end
-                    else begin
-                        lru[index] <= 1'b0;
-                    end
+                else begin
+                    valid_way1[index] <= 1'b1;
+                    tag_way1[index]   <= tag;
+                    pc_way1[index]    <= pc_addr;
                 end
             end
         end
