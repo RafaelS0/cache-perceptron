@@ -7,18 +7,18 @@ module aira_replacement #(
     input  wire                   clk,
     input  wire                   rst,
 
-    // Predição: só é usada em miss com as duas vias válidas
+    // Predição: só é usada em miss com as duas vias ocupadas/validas
     input  wire                   req_victim,
     input  wire [31:0]            pc_way0,
     input  wire [31:0]            pc_way1,
     input  wire [GHR_LEN-1:0]     current_ghr,
     output reg                    victim_way,
 
-    // Treinamento: ocorre a cada acesso válido
+    // Entradas para treinamento
     input  wire                   train_valid,
-    input  wire [31:0]            train_pc,
+    input  wire [31:0]            train_pc, // PC do acesso atual
     input  wire                   train_hit,
-    input  wire [GHR_LEN-1:0]     train_ghr
+    input  wire [GHR_LEN-1:0]     train_ghr //GHR atual usado no treinamento
 );
 
     localparam integer PC_INDEX_BITS = $clog2(TABLE_LINES);

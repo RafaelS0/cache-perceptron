@@ -9,26 +9,38 @@ module cache #(
 
     output wire        hit,
     output wire        miss,
-    output reg         victim_way
+    output reg         victim_way,
+
+    // Contadores de desempenho
+    output reg [31:0]  hit_count,
+    output reg [31:0]  miss_count
 );
 
-    // Cache: 64 conjuntos, 2 vias
-    reg valid_way0 [0:63];
-    reg valid_way1 [0:63];
-
-    reg [21:0] tag_way0 [0:63];
-    reg [21:0] tag_way1 [0:63];
-
-    // PC associado à linha, usado pelo perceptron
-    reg [31:0] pc_way0 [0:63];
-    reg [31:0] pc_way1 [0:63];
+   
+    // ============================================================\\
+    // 			  Memoria cache
+    reg [53:0] cache_mem [0:127][0:1];  // cache_mem[128 sets][2 vias], 54 bits por linha
+    // ============================================================\\
+   
 
     // Histórico global: 1 = hit, 0 = miss
     reg [GHR_LEN-1:0] ghr;
 
-    wire [5:0]  index;
-    wire [21:0] tag;
+    // Separação do endereço
+    wire [6:0]  index;
+    wire [20:0] tag;
 
+    // Campos extraídos da cache
+    wire        valid_way0;
+    wire        valid_way1;
+
+    wire [20:0] tag_way0;
+    wire [20:0] tag_way1;
+
+    wire [31:0] pc_way0;
+    wire [31:0] pc_way1;
+
+    // Sinais de controle
     wire hit_way0;
     wire hit_way1;
     wire set_full;
@@ -38,72 +50,110 @@ module cache #(
     wire policy_victim_way;
     wire selected_way;
 
-  
     wire aira_req_victim;
 
-    assign index = pc_addr[9:4];
-    assign tag   = pc_addr[31:10];
+    // ============================================================\\
+    // 			  Divisão do endereço
+    //
+    // pc_addr[3:0]   -> offset
+    // pc_addr[10:4]  -> index
+    // pc_addr[31:11] -> tag
+    //
+    // offset = 4 bits
+    // index  = 7 bits
+    // tag    = 21 bits
+    //============================================================\\
+
+    assign index = pc_addr[10:4];
+    assign tag   = pc_addr[31:11];
+
+    // ============================================================\\
+    // 			Extração dos campos da cache
+    //
+    // cache_mem[set][way][bits]
+    //
+    // [53]    -> valid
+    // [52:32] -> tag
+    // [31:0]  -> pc
+    // ============================================================\\
+
+    assign valid_way0 = cache_mem[index][0][53];
+    assign valid_way1 = cache_mem[index][1][53];
+
+    assign tag_way0 = cache_mem[index][0][52:32];
+    assign tag_way1 = cache_mem[index][1][52:32];
+
+    assign pc_way0 = cache_mem[index][0][31:0];
+    assign pc_way1 = cache_mem[index][1][31:0];
+
+    // ============================================================\\
+    // 			Verificação de hit/miss/way
+    // ============================================================\\
 
     assign hit_way0 =
-        valid_way0[index] && (tag_way0[index] == tag);
+        valid_way0 && (tag_way0 == tag);
 
     assign hit_way1 =
-        valid_way1[index] && (tag_way1[index] == tag);
+        valid_way1 && (tag_way1 == tag);
 
     assign hit  = req_valid && (hit_way0 || hit_way1);
     assign miss = req_valid && !hit;
 
-    assign set_full = valid_way0[index] && valid_way1[index];
+    assign set_full = valid_way0 && valid_way1; 
+  
+                         
+    assign policy_victim_way = policy_select ? perceptron_victim_way : lru_victim_way; // se 0 LRU 1 AIRA
 
-    // 0 = LRU | 1 = AIRA/perceptron
-    assign policy_victim_way =
-        policy_select ? perceptron_victim_way : lru_victim_way;
-
-    
-// Via inválida sempre tem prioridade
+    // Tenta alocar primeiro em uma via inválida/vazia
     assign selected_way =
-        !valid_way0[index] ? 1'b0 :
-        !valid_way1[index] ? 1'b1 :
-                             policy_victim_way;
+        !valid_way0 ? 1'b0 :
+        !valid_way1 ? 1'b1 :
+                      policy_victim_way;
 
-   
-
-    // Só pede decisão ao perceptron em miss com o conjunto cheio.
+    // Se for um miss e o set estiver cheio chama politica de substituiçao
     assign aira_req_victim =
         miss && set_full && policy_select;
 
- replacement_lru #(
-    .NUM_SETS(64)
-) u_lru (
-    .clk(clk),
-    .reset(rst),
+    // ============================================================\\
+    //			      Módulo LRU
+    // ============================================================\\
 
-    .access(req_valid),
-    .index(index),
+    replacement_lru #(
+        .NUM_SETS(128)
+    ) u_lru (
+        .clk(clk),
+        .reset(rst),
 
-    .hit(hit),
-    .hit_way0(hit_way0),
-    .hit_way1(hit_way1),
+        .access(req_valid),
+        .index(index),
 
-    .valid_way0(valid_way0[index]),
-    .valid_way1(valid_way1[index]),
+        .hit(hit),
+        .hit_way0(hit_way0),
+        .hit_way1(hit_way1),
 
-    .victim_way(lru_victim_way),
-    .victim_ready()
-);
+        .valid_way0(valid_way0),
+        .valid_way1(valid_way1),
+
+        .victim_way(lru_victim_way),
+        .victim_ready()
+    );
+
+    // ============================================================\\
+    // 			Módulo AIRA/perceptron
+    // ============================================================\\
 
     aira_replacement #(
         .GHR_LEN(GHR_LEN),
         .WEIGHT_BITS(8),
-        .TABLE_LINES(64),
+        .TABLE_LINES(128),
         .THRESHOLD(29)
     ) u_aira (
         .clk(clk),
         .rst(rst),
 
         .req_victim(aira_req_victim),
-        .pc_way0(pc_way0[index]),
-        .pc_way1(pc_way1[index]),
+        .pc_way0(pc_way0),
+        .pc_way1(pc_way1),
         .current_ghr(ghr),
         .victim_way(perceptron_victim_way),
 
@@ -113,38 +163,59 @@ module cache #(
         .train_ghr(ghr)
     );
 
+    //============================================================\\
+    // 			Lógica sequencial
+    //============================================================\\
+
     integer i;
+    integer w;
 
     always @(posedge clk) begin
         if (rst) begin
-            for (i = 0; i < 64; i = i + 1) begin
-                valid_way0[i] <= 1'b0;
-                valid_way1[i] <= 1'b0;
+
+            // Zera todos os metadados da cache
+            for (i = 0; i < 128; i = i + 1) begin
+                for (w = 0; w < 2; w = w + 1) begin
+                    cache_mem[i][w] <= 54'd0;
+                end
             end
 
             ghr        <= {GHR_LEN{1'b0}};
             victim_way <= 1'b0;
+
+            // Zera contadores
+            hit_count  <= 32'd0;
+            miss_count <= 32'd0;
         end
         else begin
 
-            // O AIRA usa o GHR anterior no acesso atual.
-            // O novo resultado vale para o próximo acesso.
-            if (req_valid)
-                ghr <= {ghr[GHR_LEN-2:0], hit};
+            // Atualiza contadores apenas quando existe uma requisição válida
+            if (req_valid) begin
+                if (hit) begin
+                    hit_count <= hit_count + 1'b1;
+                end
+                else begin
+                    miss_count <= miss_count + 1'b1;
+                end
+            end
 
+            // O AIRA usa o GHR antigo no acesso atual.
+            // O novo resultado entra no histórico para o próximo acesso.
+            if (req_valid) begin
+                ghr <= {ghr[GHR_LEN-2:0], hit};
+            end
+
+            // Em caso de miss, insere o novo endereço na via selecionada
             if (miss) begin
                 victim_way <= selected_way;
 
-                if (selected_way == 1'b0) begin
-                    valid_way0[index] <= 1'b1;
-                    tag_way0[index]   <= tag;
-                    pc_way0[index]    <= pc_addr;
-                end
-                else begin
-                    valid_way1[index] <= 1'b1;
-                    tag_way1[index]   <= tag;
-                    pc_way1[index]    <= pc_addr;
-                end
+                // Formato da linha:
+                // {valid, tag, pc}
+                //
+                // 1'b1    -> bit [53]
+                // tag     -> bits [52:32]
+                // pc_addr -> bits [31:0]
+                cache_mem[index][selected_way] <= {1'b1, tag, pc_addr};
             end
         end
     end

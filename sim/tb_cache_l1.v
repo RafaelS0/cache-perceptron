@@ -1,3 +1,6 @@
+`timescale 1ps/1ps
+
+
 module tb_cache_lru;
 
     reg         clk;
@@ -11,11 +14,11 @@ module tb_cache_lru;
     wire        victim_way;
 
     // Endereços: todos pertencem ao set 0
-    localparam [31:0] ADDR_A = 32'h0000_0000; // tag 0, index 0
-    localparam [31:0] ADDR_B = 32'h0000_0400; // tag 1, index 0
-    localparam [31:0] ADDR_C = 32'h0000_0800; // tag 2, index 0
+	localparam [31:0] ADDR_A = 32'h0000_0840; // tag 1, index 4
+	localparam [31:0] ADDR_B = 32'h0000_1040; // tag 2, index 4
+	localparam [31:0] ADDR_C = 32'h0000_1840; // tag 3, index 4
 
-    // Sinais auxiliares para facilitar a leitura no GTKWave
+    // Sinais auxiliares para facilitar a leitura na forma de onda
     reg [3:0] etapa;
     reg [2:0] repeticao;
     integer k;
@@ -33,21 +36,23 @@ module tb_cache_lru;
     );
 
     // Aliases para enxergar explicitamente o set 0 na forma de onda
-    wire        valid_way0_set0;
-    wire        valid_way1_set0;
-    wire [21:0] tag_way0_set0;
-    wire [21:0] tag_way1_set0;
-    wire        lru_victim_set0;
-    wire        policy_victim_set0;
+	wire        cache_valid_way0_set4;
+	wire        cache_valid_way1_set4;
+	wire [20:0] cache_tag_way0_set4;
+	wire [20:0] cache_tag_way1_set4;
+	wire [31:0] cache_pc_way0_set4;
+	wire [31:0] cache_pc_way1_set4;
 
-    assign valid_way0_set0  = dut.valid_way0[0];
-    assign valid_way1_set0  = dut.valid_way1[0];
-    assign tag_way0_set0    = dut.tag_way0[0];
-    assign tag_way1_set0    = dut.tag_way1[0];
-    assign lru_victim_set0  = dut.lru_victim_way;
-    assign policy_victim_set0 = dut.policy_victim_way;
+	assign cache_valid_way0_set4 = dut.cache_mem[4][0][53];
+	assign cache_valid_way1_set4 = dut.cache_mem[4][1][53];
 
-    // Clock: período de 10 ns
+	assign cache_tag_way0_set4 = dut.cache_mem[4][0][52:32];
+	assign cache_tag_way1_set4 = dut.cache_mem[4][1][52:32];
+
+	assign cache_pc_way0_set4 = dut.cache_mem[4][0][31:0];
+	assign cache_pc_way1_set4 = dut.cache_mem[4][1][31:0];
+
+    // Clock: período de 10 ps
     always #5 clk = ~clk;
 
     // Envia uma requisição válida por um ciclo
@@ -66,13 +71,13 @@ module tb_cache_lru;
 
     initial begin
         $dumpfile("tb_cache_lru.vcd");
-        $dumpvars(0, tb_cache_lru);
+        $dumpvars;
 
         clk           = 1'b0;
         rst           = 1'b1;
         req_valid     = 1'b0;
         pc_addr       = 32'h0000_0000;
-        policy_select = 1'b0; // 0 = LRU
+        policy_select = 1'b1; // 0 = LRU
         etapa         = 4'd0;
         repeticao     = 3'd0;
 
@@ -91,9 +96,9 @@ module tb_cache_lru;
         envia_endereco(ADDR_B);
 
         // Etapa 3:
-        // Cinco hits em B.
-        // B fica como a via mais recentemente usada.
-        // A deve permanecer como LRU.
+        // Cinco hits em B. Aumentando ou SCORE / sendo a mais recentemente usada
+        // A fica como a via menos recentemente usada / menor score
+        
         etapa = 4'd3;
         for (k = 0; k < 5; k = k + 1) begin
             repeticao = k + 1;
@@ -113,7 +118,6 @@ module tb_cache_lru;
         etapa = 4'd5;
         repeat (2) @(posedge clk);
 
-        $finish;
     end
 
 endmodule
