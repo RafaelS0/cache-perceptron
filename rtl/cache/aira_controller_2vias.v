@@ -1,6 +1,6 @@
 
-module aira_controller #(
-    parameter WAYS         = 4,
+module aira_controller_2way #(
+    parameter WAYS         = 2,
     parameter GHR_LEN      = 8,
     parameter WEIGHT_BITS  = 8,
     parameter TABLE_LINES  = 64,  // 64 linhas (usa 6 bits do PC)
@@ -13,10 +13,8 @@ module aira_controller #(
     input  wire                   req_victim,      
     input  wire [31:0]            pc_way0,         // PC armazenado na Via 0
     input  wire [31:0]            pc_way1,         // PC armazenado na Via 1
-    input  wire [31:0]            pc_way2,         // PC armazenado na Via 2
-    input  wire [31:0]            pc_way3,         // PC armazenado na Via 3
     input  wire [GHR_LEN-1:0]     current_ghr,     // GHR atual
-    output reg  [1:0]             victim_way,      // Qual via expulsar (0 a 3)
+    output reg                    victim_way,      // Qual via expulsar (0 ou 1)
     
     // Interface de Treinamento (ocorre a cada acesso)
     input  wire                   train_valid,     // Habilita o treinamento
@@ -33,45 +31,36 @@ module aira_controller #(
     
     // FUNCAO COMBINACIONAL: CALCULO DE SCORE (u)
     // bloco combinacional (always @*) para calcular a arvore de somas
-    reg signed [WEIGHT_BITS+3:0] score_w0, score_w1, score_w2, score_w3;
+    reg signed [WEIGHT_BITS+3:0] score_w0, score_w1;
     wire [5:0] idx_w0 = pc_way0[7:2]; // Isola bits para indexar a tabela (ex: 6 bits = 64 posicoes)
     wire [5:0] idx_w1 = pc_way1[7:2];
-    wire [5:0] idx_w2 = pc_way2[7:2];
-    wire [5:0] idx_w3 = pc_way3[7:2];
 
     always @(*) begin
         // Inicializa com o Bias
         score_w0 = weight_table[idx_w0][0];
         score_w1 = weight_table[idx_w1][0];
-        score_w2 = weight_table[idx_w2][0];
-        score_w3 = weight_table[idx_w3][0];
         
         // Arvore de soma XNOR com o GHR
         for (i = 0; i < GHR_LEN; i = i + 1) begin
             score_w0 = score_w0 + (current_ghr[i] ? weight_table[idx_w0][i+1] : -weight_table[idx_w0][i+1]);
             score_w1 = score_w1 + (current_ghr[i] ? weight_table[idx_w1][i+1] : -weight_table[idx_w1][i+1]);
-            score_w2 = score_w2 + (current_ghr[i] ? weight_table[idx_w2][i+1] : -weight_table[idx_w2][i+1]);
-            score_w3 = score_w3 + (current_ghr[i] ? weight_table[idx_w3][i+1] : -weight_table[idx_w3][i+1]);
         end
     end
 
     // SELETOR DE VITIMA (Acha o menor Score)
-        always @(*) begin
+    always @(*) begin
         if (req_victim) begin
-            victim_way = 2'd0;
-            if (score_w1 < score_w0) victim_way = 2'd1;
-            if (score_w2 < ((victim_way == 2'd0) ? score_w0 : score_w1)) victim_way = 2'd2;
-            if (score_w3 < ((victim_way == 2'd0) ? score_w0 : 
-                            (victim_way == 2'd1) ? score_w1 : score_w2)) victim_way = 2'd3;
+            victim_way = 1'b0;
+            if (score_w1 < score_w0) victim_way = 1'b1;
         end else begin
-            victim_way = 2'd0;
+            victim_way = 1'b0;
         end
     end
 
     // LOGICA DE TREINAMENTO (Sincrono com o Clock)
     wire [5:0] train_idx = train_pc[7:2];
     
-    // Calculo do score para ver se a confiança foi baixa
+    // Calculo do score para ver se a confianÃ§a foi baixa
     reg signed [WEIGHT_BITS+3:0] train_score;
     always @(*) begin
         train_score = weight_table[train_idx][0];
