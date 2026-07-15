@@ -1,0 +1,658 @@
+Analysis & Synthesis report for cache_l1
+Wed Jul 15 16:06:05 2026
+Quartus Prime Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Analysis & Synthesis Summary
+  3. Analysis & Synthesis Settings
+  4. Parallel Compilation
+  5. Analysis & Synthesis Source Files Read
+  6. Analysis & Synthesis Resource Usage Summary
+  7. Analysis & Synthesis Resource Utilization by Entity
+  8. General Register Statistics
+  9. Multiplexer Restructuring Statistics (Restructuring Performed)
+ 10. Parameter Settings for User Entity Instance: Top-level Entity: |cache
+ 11. Parameter Settings for User Entity Instance: replacement_lru:u_lru
+ 12. Parameter Settings for User Entity Instance: aira_controller_2way:u_aira
+ 13. Port Connectivity Checks: "aira_controller_2way:u_aira"
+ 14. Port Connectivity Checks: "replacement_lru:u_lru"
+ 15. Post-Synthesis Netlist Statistics for Top Partition
+ 16. Elapsed Time Per Partition
+ 17. Analysis & Synthesis Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2025  Altera Corporation. All rights reserved.
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, the Altera Quartus Prime License Agreement,
+the Altera IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Altera and sold by Altera or its authorized distributors.  Please
+refer to the Altera Software License Subscription Agreements 
+on the Quartus Prime software download page.
+
+
+
++-----------------------------------------------------------------------------------+
+; Analysis & Synthesis Summary                                                      ;
++---------------------------------+-------------------------------------------------+
+; Analysis & Synthesis Status     ; Successful - Wed Jul 15 15:58:17 2026           ;
+; Quartus Prime Version           ; 25.1std.0 Build 1129 10/21/2025 SC Lite Edition ;
+; Revision Name                   ; cache_l1                                        ;
+; Top-level Entity Name           ; cache                                           ;
+; Family                          ; Cyclone V                                       ;
+; Logic utilization (in ALMs)     ; N/A                                             ;
+; Total registers                 ; 10441                                           ;
+; Total pins                      ; 103                                             ;
+; Total virtual pins              ; 0                                               ;
+; Total block memory bits         ; 0                                               ;
+; Total DSP Blocks                ; 0                                               ;
+; Total HSSI RX PCSs              ; 0                                               ;
+; Total HSSI PMA RX Deserializers ; 0                                               ;
+; Total HSSI TX PCSs              ; 0                                               ;
+; Total HSSI PMA TX Serializers   ; 0                                               ;
+; Total PLLs                      ; 0                                               ;
+; Total DLLs                      ; 0                                               ;
++---------------------------------+-------------------------------------------------+
+
+
++---------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Settings                                                                                             ;
++---------------------------------------------------------------------------------+--------------------+--------------------+
+; Option                                                                          ; Setting            ; Default Value      ;
++---------------------------------------------------------------------------------+--------------------+--------------------+
+; Device                                                                          ; 5CGXFC7C7F23C8     ;                    ;
+; Top-level entity name                                                           ; cache              ; cache_l1           ;
+; Family name                                                                     ; Cyclone V          ; Cyclone V          ;
+; Use smart compilation                                                           ; Off                ; Off                ;
+; Enable parallel Assembler and Timing Analyzer during compilation                ; On                 ; On                 ;
+; Enable compact report table                                                     ; Off                ; Off                ;
+; Restructure Multiplexers                                                        ; Auto               ; Auto               ;
+; MLAB Add Timing Constraints For Mixed-Port Feed-Through Mode Setting Don't Care ; Off                ; Off                ;
+; Create Debugging Nodes for IP Cores                                             ; Off                ; Off                ;
+; Preserve fewer node names                                                       ; On                 ; On                 ;
+; Intel FPGA IP Evaluation Mode                                                   ; Enable             ; Enable             ;
+; Verilog Version                                                                 ; Verilog_2001       ; Verilog_2001       ;
+; VHDL Version                                                                    ; VHDL_1993          ; VHDL_1993          ;
+; State Machine Processing                                                        ; Auto               ; Auto               ;
+; Safe State Machine                                                              ; Off                ; Off                ;
+; Extract Verilog State Machines                                                  ; On                 ; On                 ;
+; Extract VHDL State Machines                                                     ; On                 ; On                 ;
+; Ignore Verilog initial constructs                                               ; Off                ; Off                ;
+; Iteration limit for constant Verilog loops                                      ; 5000               ; 5000               ;
+; Iteration limit for non-constant Verilog loops                                  ; 250                ; 250                ;
+; Add Pass-Through Logic to Inferred RAMs                                         ; On                 ; On                 ;
+; Infer RAMs from Raw Logic                                                       ; On                 ; On                 ;
+; Parallel Synthesis                                                              ; On                 ; On                 ;
+; DSP Block Balancing                                                             ; Auto               ; Auto               ;
+; NOT Gate Push-Back                                                              ; On                 ; On                 ;
+; Power-Up Don't Care                                                             ; On                 ; On                 ;
+; Remove Redundant Logic Cells                                                    ; Off                ; Off                ;
+; Remove Duplicate Registers                                                      ; On                 ; On                 ;
+; Ignore CARRY Buffers                                                            ; Off                ; Off                ;
+; Ignore CASCADE Buffers                                                          ; Off                ; Off                ;
+; Ignore GLOBAL Buffers                                                           ; Off                ; Off                ;
+; Ignore ROW GLOBAL Buffers                                                       ; Off                ; Off                ;
+; Ignore LCELL Buffers                                                            ; Off                ; Off                ;
+; Ignore SOFT Buffers                                                             ; On                 ; On                 ;
+; Limit AHDL Integers to 32 Bits                                                  ; Off                ; Off                ;
+; Optimization Technique                                                          ; Balanced           ; Balanced           ;
+; Carry Chain Length                                                              ; 70                 ; 70                 ;
+; Auto Carry Chains                                                               ; On                 ; On                 ;
+; Auto Open-Drain Pins                                                            ; On                 ; On                 ;
+; Perform WYSIWYG Primitive Resynthesis                                           ; Off                ; Off                ;
+; Auto ROM Replacement                                                            ; On                 ; On                 ;
+; Auto RAM Replacement                                                            ; On                 ; On                 ;
+; Auto DSP Block Replacement                                                      ; On                 ; On                 ;
+; Auto Shift Register Replacement                                                 ; Auto               ; Auto               ;
+; Allow Shift Register Merging across Hierarchies                                 ; Auto               ; Auto               ;
+; Auto Clock Enable Replacement                                                   ; On                 ; On                 ;
+; Strict RAM Replacement                                                          ; Off                ; Off                ;
+; Allow Synchronous Control Signals                                               ; On                 ; On                 ;
+; Force Use of Synchronous Clear Signals                                          ; Off                ; Off                ;
+; Auto Resource Sharing                                                           ; Off                ; Off                ;
+; Allow Any RAM Size For Recognition                                              ; Off                ; Off                ;
+; Allow Any ROM Size For Recognition                                              ; Off                ; Off                ;
+; Allow Any Shift Register Size For Recognition                                   ; Off                ; Off                ;
+; Use LogicLock Constraints during Resource Balancing                             ; On                 ; On                 ;
+; Ignore translate_off and synthesis_off directives                               ; Off                ; Off                ;
+; Timing-Driven Synthesis                                                         ; On                 ; On                 ;
+; Report Parameter Settings                                                       ; On                 ; On                 ;
+; Report Source Assignments                                                       ; On                 ; On                 ;
+; Report Connectivity Checks                                                      ; On                 ; On                 ;
+; Ignore Maximum Fan-Out Assignments                                              ; Off                ; Off                ;
+; Synchronization Register Chain Length                                           ; 3                  ; 3                  ;
+; Power Optimization During Synthesis                                             ; Normal compilation ; Normal compilation ;
+; HDL message level                                                               ; Level2             ; Level2             ;
+; Suppress Register Optimization Related Messages                                 ; Off                ; Off                ;
+; Number of Removed Registers Reported in Synthesis Report                        ; 5000               ; 5000               ;
+; Number of Swept Nodes Reported in Synthesis Report                              ; 5000               ; 5000               ;
+; Number of Inverted Registers Reported in Synthesis Report                       ; 100                ; 100                ;
+; Clock MUX Protection                                                            ; On                 ; On                 ;
+; Auto Gated Clock Conversion                                                     ; Off                ; Off                ;
+; Block Design Naming                                                             ; Auto               ; Auto               ;
+; SDC constraint protection                                                       ; Off                ; Off                ;
+; Synthesis Effort                                                                ; Auto               ; Auto               ;
+; Shift Register Replacement - Allow Asynchronous Clear Signal                    ; On                 ; On                 ;
+; Pre-Mapping Resynthesis Optimization                                            ; Off                ; Off                ;
+; Analysis & Synthesis Message Level                                              ; Medium             ; Medium             ;
+; Disable Register Merging Across Hierarchies                                     ; Auto               ; Auto               ;
+; Resource Aware Inference For Block RAM                                          ; On                 ; On                 ;
+; Automatic Parallel Synthesis                                                    ; On                 ; On                 ;
+; Partial Reconfiguration Bitstream ID                                            ; Off                ; Off                ;
++---------------------------------------------------------------------------------+--------------------+--------------------+
+
+
++------------------------------------------+
+; Parallel Compilation                     ;
++----------------------------+-------------+
+; Processors                 ; Number      ;
++----------------------------+-------------+
+; Number detected on machine ; 4           ;
+; Maximum allowed            ; 2           ;
+;                            ;             ;
+; Average used               ; 1.18        ;
+; Maximum used               ; 2           ;
+;                            ;             ;
+; Usage by Processor         ; % Time Used ;
+;     Processor 1            ; 100.0%      ;
+;     Processor 2            ;  18.5%      ;
++----------------------------+-------------+
+
+
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Source Files Read                                                                                                                                                          ;
++--------------------------------------+-----------------+------------------------+-----------------------------------------------------------------------------------------------------+---------+
+; File Name with User-Entered Path     ; Used in Netlist ; File Type              ; File Name with Absolute Path                                                                        ; Library ;
++--------------------------------------+-----------------+------------------------+-----------------------------------------------------------------------------------------------------+---------+
+; ../rtl/cache/cache_l1.v              ; yes             ; User Verilog HDL File  ; /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v              ;         ;
+; ../rtl/cache/aira_controller_2vias.v ; yes             ; User Verilog HDL File  ; /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v ;         ;
+; ../rtl/cache/replacement_lru.v       ; yes             ; User Verilog HDL File  ; /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/replacement_lru.v       ;         ;
++--------------------------------------+-----------------+------------------------+-----------------------------------------------------------------------------------------------------+---------+
+
+
++---------------------------------------------------------+
+; Analysis & Synthesis Resource Usage Summary             ;
++---------------------------------------------+-----------+
+; Resource                                    ; Usage     ;
++---------------------------------------------+-----------+
+; Estimate of Logic utilization (ALMs needed) ; 9786      ;
+;                                             ;           ;
+; Combinational ALUT usage for logic          ; 9060      ;
+;     -- 7 input functions                    ; 32        ;
+;     -- 6 input functions                    ; 7703      ;
+;     -- 5 input functions                    ; 42        ;
+;     -- 4 input functions                    ; 178       ;
+;     -- <=3 input functions                  ; 1105      ;
+;                                             ;           ;
+; Dedicated logic registers                   ; 10441     ;
+;                                             ;           ;
+; I/O pins                                    ; 103       ;
+;                                             ;           ;
+; Total DSP Blocks                            ; 0         ;
+;                                             ;           ;
+; Maximum fan-out node                        ; rst~input ;
+; Maximum fan-out                             ; 10700     ;
+; Total fan-out                               ; 91003     ;
+; Average fan-out                             ; 4.62      ;
++---------------------------------------------+-----------+
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Resource Utilization by Entity                                                                                                                                                                  ;
++----------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+------------------------------------+----------------------+--------------+
+; Compilation Hierarchy Node       ; Combinational ALUTs ; Dedicated Logic Registers ; Block Memory Bits ; DSP Blocks ; Pins ; Virtual Pins ; Full Hierarchy Name                ; Entity Name          ; Library Name ;
++----------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+------------------------------------+----------------------+--------------+
+; |cache                           ; 9060 (2569)         ; 10441 (5705)              ; 0                 ; 0          ; 103  ; 0            ; |cache                             ; cache                ; work         ;
+;    |aira_controller_2way:u_aira| ; 6323 (6323)         ; 4608 (4608)               ; 0                 ; 0          ; 0    ; 0            ; |cache|aira_controller_2way:u_aira ; aira_controller_2way ; work         ;
+;    |replacement_lru:u_lru|       ; 168 (168)           ; 128 (128)                 ; 0                 ; 0          ; 0    ; 0            ; |cache|replacement_lru:u_lru       ; replacement_lru      ; work         ;
++----------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+------------------------------------+----------------------+--------------+
+Note: For table entries with two numbers listed, the numbers in parentheses indicate the number of resources of the given type used by the specific entity alone. The numbers listed outside of parentheses indicate the total resources of the given type used by the specific entity and all of its sub-entities in the hierarchy.
+
+
++------------------------------------------------------+
+; General Register Statistics                          ;
++----------------------------------------------+-------+
+; Statistic                                    ; Value ;
++----------------------------------------------+-------+
+; Total registers                              ; 10441 ;
+; Number of registers using Synchronous Clear  ; 5833  ;
+; Number of registers using Synchronous Load   ; 0     ;
+; Number of registers using Asynchronous Clear ; 4608  ;
+; Number of registers using Asynchronous Load  ; 0     ;
+; Number of registers using Clock Enable       ; 10056 ;
+; Number of registers using Preset             ; 0     ;
++----------------------------------------------+-------+
+
+
++---------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Multiplexer Restructuring Statistics (Restructuring Performed)                                                                                          ;
++--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------+
+; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                ;
++--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------+
+; 3:1                ; 8 bits    ; 16 LEs        ; 0 LEs                ; 16 LEs                 ; Yes        ; |cache|ghr[4]                             ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |cache|hit_count[23]~reg0                 ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |cache|miss_count[15]~reg0                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[0][0][13]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[1][0][10]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[2][0][1]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[3][0][0]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[4][0][16]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[5][0][1]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[6][0][12]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[7][0][18]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[8][0][9]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[9][0][1]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[10][0][1]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[11][0][7]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[12][0][4]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[13][0][12]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[14][0][12]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[15][0][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[16][0][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[17][0][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[18][0][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[19][0][16]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[20][0][12]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[21][0][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[22][0][4]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[23][0][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[24][0][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[25][0][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[26][0][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[27][0][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[28][0][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[29][0][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[30][0][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[31][0][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[32][0][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[33][0][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[34][0][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[35][0][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[36][0][1]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[37][0][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[38][0][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[39][0][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[40][0][4]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[41][0][13]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[42][0][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[43][0][16]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[44][0][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[45][0][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[46][0][1]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[47][0][4]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[48][0][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[49][0][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[50][0][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[51][0][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[52][0][7]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[53][0][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[54][0][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[55][0][4]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[56][0][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[57][0][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[58][0][13]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[59][0][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[60][0][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[61][0][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[62][0][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[63][0][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[64][0][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[65][0][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[66][0][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[67][0][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[68][0][11]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[69][0][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[70][0][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[71][0][17]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[72][0][16]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[73][0][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[74][0][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[75][0][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[76][0][7]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[77][0][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[78][0][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[79][0][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[80][0][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[81][0][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[82][0][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[83][0][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[84][0][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[85][0][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[86][0][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[87][0][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[88][0][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[89][0][1]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[90][0][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[91][0][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[92][0][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[93][0][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[94][0][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[95][0][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[96][0][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[97][0][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[98][0][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[99][0][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[100][0][18]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[101][0][12]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[102][0][13]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[103][0][13]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[104][0][15]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[105][0][10]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[106][0][10]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[107][0][9]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[108][0][11]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[109][0][19]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[110][0][3]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[111][0][15]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[112][0][20]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[113][0][17]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[114][0][0]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[115][0][9]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[116][0][19]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[117][0][9]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[118][0][8]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[119][0][15]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[120][0][14]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[121][0][3]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[122][0][6]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[123][0][18]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[124][0][17]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[125][0][14]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[126][0][13]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[127][0][17]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[0][1][18]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[1][1][11]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[2][1][10]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[3][1][8]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[4][1][9]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[5][1][0]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[6][1][4]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[7][1][2]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[8][1][7]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[9][1][9]                 ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[10][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[11][1][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[12][1][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[13][1][13]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[14][1][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[15][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[16][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[17][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[18][1][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[19][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[20][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[21][1][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[22][1][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[23][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[24][1][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[25][1][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[26][1][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[27][1][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[28][1][11]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[29][1][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[30][1][1]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[31][1][12]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[32][1][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[33][1][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[34][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[35][1][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[36][1][13]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[37][1][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[38][1][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[39][1][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[40][1][6]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[41][1][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[42][1][12]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[43][1][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[44][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[45][1][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[46][1][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[47][1][17]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[48][1][12]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[49][1][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[50][1][7]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[51][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[52][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[53][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[54][1][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[55][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[56][1][13]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[57][1][17]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[58][1][19]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[59][1][3]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[60][1][16]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[61][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[62][1][17]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[63][1][1]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[64][1][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[65][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[66][1][13]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[67][1][17]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[68][1][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[69][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[70][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[71][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[72][1][15]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[73][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[74][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[75][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[76][1][20]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[77][1][9]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[78][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[79][1][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[80][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[81][1][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[82][1][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[83][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[84][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[85][1][12]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[86][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[87][1][5]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[88][1][17]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[89][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[90][1][14]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[91][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[92][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[93][1][18]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[94][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[95][1][1]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[96][1][8]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[97][1][2]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[98][1][0]                ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[99][1][10]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[100][1][6]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[101][1][10]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[102][1][18]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[103][1][10]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[104][1][10]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[105][1][9]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[106][1][8]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[107][1][14]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[108][1][11]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[109][1][7]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[110][1][0]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[111][1][7]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[112][1][2]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[113][1][15]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[114][1][12]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[115][1][4]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[116][1][12]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[117][1][11]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[118][1][11]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[119][1][5]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[120][1][2]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[121][1][7]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[122][1][8]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[123][1][3]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[124][1][1]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[125][1][10]              ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[126][1][0]               ;
+; 3:1                ; 21 bits   ; 42 LEs        ; 0 LEs                ; 42 LEs                 ; Yes        ; |cache|cache_mem[127][1][14]              ;
+; 64:1               ; 63 bits   ; 2646 LEs      ; 2646 LEs             ; 0 LEs                  ; No         ; |cache|aira_controller_2way:u_aira|Mux71  ;
+; 64:1               ; 63 bits   ; 2646 LEs      ; 2646 LEs             ; 0 LEs                  ; No         ; |cache|aira_controller_2way:u_aira|Mux127 ;
+; 128:1              ; 44 bits   ; 3740 LEs      ; 3740 LEs             ; 0 LEs                  ; No         ; |cache|Mux0                               ;
+; 64:1               ; 72 bits   ; 3024 LEs      ; 3024 LEs             ; 0 LEs                  ; No         ; |cache|aira_controller_2way:u_aira|Mux164 ;
+; 64:1               ; 9 bits    ; 378 LEs       ; 378 LEs              ; 0 LEs                  ; No         ; |cache|aira_controller_2way:u_aira|Mux16  ;
+; 64:1               ; 9 bits    ; 378 LEs       ; 378 LEs              ; 0 LEs                  ; No         ; |cache|aira_controller_2way:u_aira|Mux40  ;
++--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------+
+
+
++-----------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: Top-level Entity: |cache ;
++----------------+-------+----------------------------------------------+
+; Parameter Name ; Value ; Type                                         ;
++----------------+-------+----------------------------------------------+
+; GHR_LEN        ; 8     ; Signed Integer                               ;
++----------------+-------+----------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++--------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: replacement_lru:u_lru ;
++----------------+-------+-------------------------------------------+
+; Parameter Name ; Value ; Type                                      ;
++----------------+-------+-------------------------------------------+
+; NUM_SETS       ; 128   ; Signed Integer                            ;
++----------------+-------+-------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++--------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: aira_controller_2way:u_aira ;
++----------------+-------+-------------------------------------------------+
+; Parameter Name ; Value ; Type                                            ;
++----------------+-------+-------------------------------------------------+
+; WAYS           ; 2     ; Signed Integer                                  ;
+; GHR_LEN        ; 8     ; Signed Integer                                  ;
+; WEIGHT_BITS    ; 8     ; Signed Integer                                  ;
+; TABLE_LINES    ; 64    ; Signed Integer                                  ;
+; THRESHOLD      ; 29    ; Signed Integer                                  ;
++----------------+-------+-------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++---------------------------------------------------------+
+; Port Connectivity Checks: "aira_controller_2way:u_aira" ;
++-----------------+-------+----------+--------------------+
+; Port            ; Type  ; Severity ; Details            ;
++-----------------+-------+----------+--------------------+
+; pc_way0[31..8]  ; Input ; Info     ; Stuck at GND       ;
+; pc_way0[1..0]   ; Input ; Info     ; Stuck at GND       ;
+; pc_way1[31..8]  ; Input ; Info     ; Stuck at GND       ;
+; pc_way1[1..0]   ; Input ; Info     ; Stuck at GND       ;
+; train_pc[31..8] ; Input ; Info     ; Stuck at GND       ;
+; train_pc[1..0]  ; Input ; Info     ; Stuck at GND       ;
++-----------------+-------+----------+--------------------+
+
+
++-----------------------------------------------------------+
+; Port Connectivity Checks: "replacement_lru:u_lru"         ;
++--------------+--------+----------+------------------------+
+; Port         ; Type   ; Severity ; Details                ;
++--------------+--------+----------+------------------------+
+; victim_ready ; Output ; Info     ; Explicitly unconnected ;
++--------------+--------+----------+------------------------+
+
+
++-----------------------------------------------------+
+; Post-Synthesis Netlist Statistics for Top Partition ;
++-----------------------+-----------------------------+
+; Type                  ; Count                       ;
++-----------------------+-----------------------------+
+; arriav_ff             ; 10441                       ;
+;     ENA CLR           ; 4608                        ;
+;     ENA SCLR          ; 5448                        ;
+;     SCLR              ; 385                         ;
+; arriav_lcell_comb     ; 9060                        ;
+;     arith             ; 318                         ;
+;         1 data inputs ; 200                         ;
+;         2 data inputs ; 118                         ;
+;     extend            ; 32                          ;
+;         7 data inputs ; 32                          ;
+;     normal            ; 8518                        ;
+;         1 data inputs ; 576                         ;
+;         2 data inputs ; 14                          ;
+;         3 data inputs ; 5                           ;
+;         4 data inputs ; 178                         ;
+;         5 data inputs ; 42                          ;
+;         6 data inputs ; 7703                        ;
+;     shared            ; 192                         ;
+;         3 data inputs ; 192                         ;
+; boundary_port         ; 103                         ;
+;                       ;                             ;
+; Max LUT depth         ; 15.70                       ;
+; Average LUT depth     ; 11.31                       ;
++-----------------------+-----------------------------+
+
+
++-------------------------------+
+; Elapsed Time Per Partition    ;
++----------------+--------------+
+; Partition Name ; Elapsed Time ;
++----------------+--------------+
+; Top            ; 00:00:45     ;
++----------------+--------------+
+
+
++-------------------------------+
+; Analysis & Synthesis Messages ;
++-------------------------------+
+Info: *******************************************************************
+Info: Running Quartus Prime Analysis & Synthesis
+    Info: Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+    Info: Processing started: Wed Jul 15 15:57:13 2026
+Info: Command: quartus_map --read_settings_files=on --write_settings_files=off perceptron -c cache_l1
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (20030): Parallel compilation is enabled and will use 2 of the 2 processors detected
+Info (12021): Found 1 design units, including 1 entities, in source file /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v
+    Info (12023): Found entity 1: cache File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v Line: 1
+Warning (10259): Verilog HDL error at aira_controller_2vias.v(90): constant value overflow File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 90
+Warning (10259): Verilog HDL error at aira_controller_2vias.v(98): constant value overflow File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 98
+Info (12021): Found 1 design units, including 1 entities, in source file /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v
+    Info (12023): Found entity 1: aira_controller_2way File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 2
+Info (12021): Found 1 design units, including 1 entities, in source file /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/replacement_lru.v
+    Info (12023): Found entity 1: replacement_lru File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/replacement_lru.v Line: 1
+Info (12127): Elaborating entity "cache" for the top level hierarchy
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "cache_mem" into its bus
+Info (12128): Elaborating entity "replacement_lru" for hierarchy "replacement_lru:u_lru" File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v Line: 157
+Info (12128): Elaborating entity "aira_controller_2way" for hierarchy "aira_controller_2way:u_aira" File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v Line: 181
+Warning (10230): Verilog HDL assignment warning at aira_controller_2vias.v(73): truncated value with size 32 to match size of target (12) File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 73
+Warning (10230): Verilog HDL assignment warning at aira_controller_2vias.v(88): truncated value with size 32 to match size of target (8) File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 88
+Warning (10230): Verilog HDL assignment warning at aira_controller_2vias.v(90): truncated value with size 32 to match size of target (8) File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 90
+Warning (10230): Verilog HDL assignment warning at aira_controller_2vias.v(96): truncated value with size 32 to match size of target (8) File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 96
+Warning (10230): Verilog HDL assignment warning at aira_controller_2vias.v(98): truncated value with size 32 to match size of target (8) File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 98
+Warning (10240): Verilog HDL Always Construct warning at aira_controller_2vias.v(77): inferring latch(es) for variable "i", which holds its previous value in one or more paths through the always construct File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/aira_controller_2vias.v Line: 77
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "weight_table" into its bus
+Info (286030): Timing-Driven Synthesis is running
+Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
+    Info (16011): Adding 0 node(s), including 0 DDIO, 0 PLL, 0 transceiver and 0 LCELL
+Warning (21074): Design contains 4 input pin(s) that do not drive logic
+    Warning (15610): No output dependent on input pin "pc_addr[0]" File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v Line: 7
+    Warning (15610): No output dependent on input pin "pc_addr[1]" File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v Line: 7
+    Warning (15610): No output dependent on input pin "pc_addr[2]" File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v Line: 7
+    Warning (15610): No output dependent on input pin "pc_addr[3]" File: /home/rafael/Documentos/unipampa/pi-4/sintetizar/cache-perceptron/rtl/cache/cache_l1.v Line: 7
+Info (21057): Implemented 18579 device resources after synthesis - the final resource count might be different
+    Info (21058): Implemented 36 input pins
+    Info (21059): Implemented 67 output pins
+    Info (21061): Implemented 18476 logic cells
+Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 14 warnings
+    Info: Peak virtual memory: 536 megabytes
+    Info: Processing ended: Wed Jul 15 15:58:17 2026
+    Info: Elapsed time: 00:01:04
+    Info: Total CPU time (on all processors): 00:01:20
+
+
